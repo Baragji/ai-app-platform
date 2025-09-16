@@ -1,5 +1,8 @@
-# Build stage
+# Build stage  
 FROM node:20-alpine AS builder
+
+# Install required system dependencies for Prisma
+RUN apk add --no-cache openssl libc6-compat
 
 WORKDIR /app
 
@@ -9,12 +12,16 @@ COPY apps/web/package*.json ./apps/web/
 COPY packages/config/package*.json ./packages/config/
 COPY packages/db/package*.json ./packages/db/
 COPY packages/jobs/package*.json ./packages/jobs/
+COPY packages/gateway/package*.json ./packages/gateway/
 
 # Install dependencies
 RUN npm ci
 
 # Copy source code
 COPY . .
+
+# Build gateway package first (required by other packages)
+RUN npm run build --workspace=packages/gateway
 
 # Generate Prisma client
 RUN npm run generate --workspace=packages/db
@@ -25,7 +32,8 @@ RUN npm run build
 # Production stage
 FROM node:20-alpine AS runner
 
-RUN apk add --no-cache curl
+# Install system dependencies
+RUN apk add --no-cache curl openssl libc6-compat
 
 WORKDIR /app
 
