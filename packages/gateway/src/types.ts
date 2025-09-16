@@ -55,13 +55,21 @@ export type LiteLLMError = z.infer<typeof LiteLLMErrorSchema>;
 export interface GatewayConfig {
   baseUrl: string;
   timeout: number;
+  langfuse?: {
+    publicKey: string;
+    secretKey: string;
+    baseUrl?: string;
+    enabled: boolean;
+  };
 }
 
-// Model Call Result with metrics
+// Model Call Result with metrics and tracing
 export interface ModelCallResult {
   response: ChatCompletionResponse;
   latency: number; // in milliseconds
   cost?: number; // if available
+  traceId?: string; // Langfuse trace ID for debugging
+  requestId?: string; // Internal request ID
 }
 
 // Available models configuration

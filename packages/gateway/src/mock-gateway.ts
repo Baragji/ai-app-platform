@@ -16,7 +16,10 @@ export class MockLiteLLMGateway {
     this.config = config;
   }
 
-  async chatCompletion(request: ChatCompletionRequest): Promise<ModelCallResult> {
+  async chatCompletion(
+    request: ChatCompletionRequest,
+    metadata?: { userId?: string; sessionId?: string; [key: string]: any }
+  ): Promise<ModelCallResult> {
     // Simulate network latency
     const baseLatency = 100;
     const variableLatency = Math.floor(Math.random() * 500); // 0-500ms
@@ -54,10 +57,16 @@ export class MockLiteLLMGateway {
     // Calculate mock cost
     const cost = this.calculateMockCost(mockResponse, request.model);
 
+    // Generate mock trace ID and request ID for testing
+    const traceId = `trace-mock-${Date.now()}`;
+    const requestId = `req-mock-${Date.now()}`;
+
     return {
       response: mockResponse,
       latency,
       cost,
+      traceId,
+      requestId,
     };
   }
 
@@ -145,5 +154,10 @@ export const createMockGateway = (baseUrl?: string, timeout?: number) => {
   return new MockLiteLLMGateway({
     baseUrl: baseUrl || 'http://localhost:4000',
     timeout: timeout || 30000,
+    langfuse: {
+      publicKey: '',
+      secretKey: '',
+      enabled: false,
+    },
   });
 };

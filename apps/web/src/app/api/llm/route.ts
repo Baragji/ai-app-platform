@@ -36,6 +36,10 @@ export async function POST(request: NextRequest) {
           latency: result.latency,
           cost: result.cost,
         },
+        tracing: {
+          traceId: result.traceId,
+          requestId: result.requestId,
+        },
       },
     });
   } catch (error) {
