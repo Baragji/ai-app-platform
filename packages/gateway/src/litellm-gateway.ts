@@ -41,14 +41,17 @@ export class LiteLLMGateway {
     let response: ChatCompletionResponse | undefined;
 
     try {
-      const httpResponse = await fetch(`${this.config.baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(validatedRequest),
-        signal: AbortSignal.timeout(this.config.timeout),
-      });
+      const httpResponse = await fetch(
+        `${this.config.baseUrl}/chat/completions`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(validatedRequest),
+          signal: AbortSignal.timeout(this.config.timeout),
+        }
+      );
 
       const responseData = await httpResponse.json();
 
@@ -84,8 +87,11 @@ export class LiteLLMGateway {
       };
     } catch (caughtError) {
       const latency = Date.now() - startTime;
-      error = caughtError instanceof Error ? caughtError : new Error('Unknown error occurred');
-      
+      error =
+        caughtError instanceof Error
+          ? caughtError
+          : new Error('Unknown error occurred');
+
       // Update Langfuse trace with error
       if (traceId && response) {
         await this.langfuseService.updateTrace(
@@ -97,7 +103,7 @@ export class LiteLLMGateway {
           error
         );
       }
-      
+
       throw new Error(`Gateway Error (${latency}ms): ${error.message}`);
     }
   }
@@ -121,12 +127,16 @@ export class LiteLLMGateway {
     }
 
     const inputCost = (response.usage.prompt_tokens / 1000) * modelCost.input;
-    const outputCost = (response.usage.completion_tokens / 1000) * modelCost.output;
+    const outputCost =
+      (response.usage.completion_tokens / 1000) * modelCost.output;
 
     return inputCost + outputCost;
   }
 
-  async healthCheck(): Promise<{ status: 'healthy' | 'unhealthy'; latency: number }> {
+  async healthCheck(): Promise<{
+    status: 'healthy' | 'unhealthy';
+    latency: number;
+  }> {
     const startTime = Date.now();
 
     try {

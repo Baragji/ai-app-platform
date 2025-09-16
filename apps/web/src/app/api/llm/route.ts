@@ -18,7 +18,7 @@ const LLMRequestSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
+
     // Validate request
     const validatedRequest = LLMRequestSchema.parse(body);
 
@@ -56,8 +56,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error occurred';
+
     return NextResponse.json(
       {
         success: false,
@@ -82,7 +83,7 @@ export async function GET() {
     });
   } catch (error) {
     console.error('LLM Health Check Error:', error);
-    
+
     return NextResponse.json(
       {
         success: false,

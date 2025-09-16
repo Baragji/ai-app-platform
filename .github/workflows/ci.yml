@@ -25,8 +25,11 @@ jobs:
       - name: Install dependencies
         run: npm ci --workspaces
 
+      - name: Build gateway package first
+        run: npm run build --workspace=packages/gateway
+
       - name: Cache node_modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             node_modules
@@ -34,6 +37,12 @@ jobs:
             packages/*/node_modules
             tests/*/node_modules
           key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Cache gateway build
+        uses: actions/cache@v4
+        with:
+          path: packages/gateway/dist
+          key: ${{ runner.os }}-gateway-dist-${{ hashFiles('packages/gateway/src/**/*', 'packages/gateway/package.json', 'packages/gateway/tsconfig.json') }}
 
   lint:
     runs-on: ubuntu-latest
@@ -49,7 +58,7 @@ jobs:
           cache: 'npm'
 
       - name: Restore node_modules cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             node_modules
@@ -58,8 +67,17 @@ jobs:
             tests/*/node_modules
           key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
 
-      - name: Install dependencies
+      - name: Restore gateway build cache
+        uses: actions/cache@v4
+        with:
+          path: packages/gateway/dist
+          key: ${{ runner.os }}-gateway-dist-${{ hashFiles('packages/gateway/src/**/*', 'packages/gateway/package.json', 'packages/gateway/tsconfig.json') }}
+
+      - name: Install dependencies (if cache miss)
         run: npm ci --workspaces
+
+      - name: Build gateway (if cache miss)
+        run: npm run build --workspace=packages/gateway
 
       - name: Run ESLint
         run: npm run lint
@@ -72,7 +90,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    needs: install
+    needs: lint
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -84,7 +102,7 @@ jobs:
           cache: 'npm'
 
       - name: Restore node_modules cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             node_modules
@@ -93,8 +111,17 @@ jobs:
             tests/*/node_modules
           key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
 
-      - name: Install dependencies
+      - name: Restore gateway build cache
+        uses: actions/cache@v4
+        with:
+          path: packages/gateway/dist
+          key: ${{ runner.os }}-gateway-dist-${{ hashFiles('packages/gateway/src/**/*', 'packages/gateway/package.json', 'packages/gateway/tsconfig.json') }}
+
+      - name: Install dependencies (if cache miss)
         run: npm ci --workspaces
+
+      - name: Build gateway (if cache miss)
+        run: npm run build --workspace=packages/gateway
 
       - name: Generate Prisma client
         run: npm run generate --workspace=packages/db
@@ -112,7 +139,7 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    needs: install
+    needs: build
     services:
       postgres:
         image: postgres:15
@@ -148,7 +175,7 @@ jobs:
           cache: 'npm'
 
       - name: Restore node_modules cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             node_modules
@@ -157,8 +184,17 @@ jobs:
             tests/*/node_modules
           key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
 
-      - name: Install dependencies
+      - name: Restore gateway build cache
+        uses: actions/cache@v4
+        with:
+          path: packages/gateway/dist
+          key: ${{ runner.os }}-gateway-dist-${{ hashFiles('packages/gateway/src/**/*', 'packages/gateway/package.json', 'packages/gateway/tsconfig.json') }}
+
+      - name: Install dependencies (if cache miss)
         run: npm ci --workspaces
+
+      - name: Build gateway (if cache miss)
+        run: npm run build --workspace=packages/gateway
 
       - name: Generate Prisma client
         run: npm run generate --workspace=packages/db
@@ -177,7 +213,7 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
-    needs: install
+    needs: test
     services:
       postgres:
         image: postgres:15
@@ -213,7 +249,7 @@ jobs:
           cache: 'npm'
 
       - name: Restore node_modules cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             node_modules
@@ -222,14 +258,24 @@ jobs:
             tests/*/node_modules
           key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
 
-      - name: Install dependencies
+      - name: Restore gateway build cache
+        uses: actions/cache@v4
+        with:
+          path: packages/gateway/dist
+          key: ${{ runner.os }}-gateway-dist-${{ hashFiles('packages/gateway/src/**/*', 'packages/gateway/package.json', 'packages/gateway/tsconfig.json') }}
+
+      - name: Install dependencies (if cache miss)
         run: npm ci --workspaces
+
+      - name: Build gateway (if cache miss)
+        run: npm run build --workspace=packages/gateway
 
       - name: Generate Prisma client
         run: npm run generate --workspace=packages/db
 
-      - name: Install Playwright browsers
-        run: npm run install-deps --workspace=tests/e2e
+      - name: Install Playwright browsers with deps
+        run: npx playwright install --with-deps
+        working-directory: tests/e2e
 
       - name: Run database migrations
         run: npm run migrate:deploy --workspace=packages/db
@@ -253,16 +299,24 @@ jobs:
           LITELLM_TIMEOUT: 5000
 
       - name: Upload Playwright report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: playwright-report
           path: tests/e2e/playwright-report/
           retention-days: 30
 
+      - name: Upload Playwright traces
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: tests/e2e/test-results/
+          retention-days: 30
+
   docker:
     runs-on: ubuntu-latest
-    needs: [lint, build, test]
+    needs: [lint, build, test, e2e]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

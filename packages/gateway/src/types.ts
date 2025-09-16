@@ -48,7 +48,9 @@ export const LiteLLMErrorSchema = z.object({
 
 // TypeScript types derived from schemas
 export type ChatCompletionRequest = z.infer<typeof ChatCompletionRequestSchema>;
-export type ChatCompletionResponse = z.infer<typeof ChatCompletionResponseSchema>;
+export type ChatCompletionResponse = z.infer<
+  typeof ChatCompletionResponseSchema
+>;
 export type LiteLLMError = z.infer<typeof LiteLLMErrorSchema>;
 
 // Gateway Configuration

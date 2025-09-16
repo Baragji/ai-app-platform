@@ -17,7 +17,9 @@ test.describe('LLM Test page', () => {
     await expect(page.locator('button[type="submit"]')).toBeDisabled(); // Should be disabled when prompt is empty
   });
 
-  test('should enable submit button when prompt is entered', async ({ page }) => {
+  test('should enable submit button when prompt is entered', async ({
+    page,
+  }) => {
     await page.goto('/llm-test');
 
     // Initially disabled
@@ -37,10 +39,14 @@ test.describe('LLM Test page', () => {
     await expect(page.locator('select')).toHaveValue('gpt-3.5-turbo');
 
     // Check default temperature
-    await expect(page.locator('input[type="number"]').first()).toHaveValue('0.7');
+    await expect(page.locator('input[type="number"]').first()).toHaveValue(
+      '0.7'
+    );
 
     // Check default max tokens
-    await expect(page.locator('input[type="number"]').nth(1)).toHaveValue('150');
+    await expect(page.locator('input[type="number"]').nth(1)).toHaveValue(
+      '150'
+    );
   });
 
   test('should allow changing model selection', async ({ page }) => {
@@ -82,7 +88,7 @@ test.describe('LLM Test page', () => {
     // Mock the API endpoint to delay response
     await page.route('/api/llm', async (route) => {
       // Delay response to test loading state
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -90,39 +96,41 @@ test.describe('LLM Test page', () => {
           success: true,
           data: {
             response: {
-              choices: [{
-                message: {
-                  role: 'assistant',
-                  content: 'This is a test response from the mock API.'
-                }
-              }],
+              choices: [
+                {
+                  message: {
+                    role: 'assistant',
+                    content: 'This is a test response from the mock API.',
+                  },
+                },
+              ],
               usage: {
                 prompt_tokens: 5,
                 completion_tokens: 10,
-                total_tokens: 15
-              }
+                total_tokens: 15,
+              },
             },
             metrics: {
               latency: 500,
-              cost: 0.0001
-            }
-          }
-        })
+              cost: 0.0001,
+            },
+          },
+        }),
       });
     });
 
     // Fill form and submit
     await page.fill('textarea', 'Test prompt');
-    
+
     // Click submit and immediately check for loading state
     const submitPromise = page.click('button[type="submit"]');
-    
+
     // Check loading state appears
     await expect(page.locator('button:has-text("Sending...")')).toBeVisible();
-    
+
     // Wait for submit to complete
     await submitPromise;
-    
+
     // Check that loading state is gone and response is shown
     await expect(page.locator('button:has-text("Send Request")')).toBeVisible();
     await expect(page.locator('text=This is a test response')).toBeVisible();
@@ -138,8 +146,8 @@ test.describe('LLM Test page', () => {
         contentType: 'application/json',
         body: JSON.stringify({
           success: false,
-          error: 'Test error message'
-        })
+          error: 'Test error message',
+        }),
       });
     });
 
@@ -164,24 +172,26 @@ test.describe('LLM Test page', () => {
           success: true,
           data: {
             response: {
-              choices: [{
-                message: {
-                  role: 'assistant',
-                  content: 'Hello! This is a test response.'
-                }
-              }],
+              choices: [
+                {
+                  message: {
+                    role: 'assistant',
+                    content: 'Hello! This is a test response.',
+                  },
+                },
+              ],
               usage: {
                 prompt_tokens: 8,
                 completion_tokens: 12,
-                total_tokens: 20
-              }
+                total_tokens: 20,
+              },
             },
             metrics: {
               latency: 750,
-              cost: 0.00025
-            }
-          }
-        })
+              cost: 0.00025,
+            },
+          },
+        }),
       });
     });
 
@@ -190,7 +200,9 @@ test.describe('LLM Test page', () => {
     await page.click('button[type="submit"]');
 
     // Wait for response
-    await expect(page.locator('text=Hello! This is a test response.')).toBeVisible();
+    await expect(
+      page.locator('text=Hello! This is a test response.')
+    ).toBeVisible();
 
     // Check metrics are displayed
     await expect(page.locator('text=750ms')).toBeVisible(); // Latency

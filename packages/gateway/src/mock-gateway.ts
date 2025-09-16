@@ -70,7 +70,10 @@ export class MockLiteLLMGateway {
     };
   }
 
-  async healthCheck(): Promise<{ status: 'healthy' | 'unhealthy'; latency: number }> {
+  async healthCheck(): Promise<{
+    status: 'healthy' | 'unhealthy';
+    latency: number;
+  }> {
     // Simulate health check latency
     const latency = 50 + Math.floor(Math.random() * 100); // 50-150ms
     await new Promise((resolve) => setTimeout(resolve, latency));
@@ -82,9 +85,9 @@ export class MockLiteLLMGateway {
   }
 
   private generateMockContent(request: ChatCompletionRequest): string {
-    const userMessage = request.messages
-      .filter((msg) => msg.role === 'user')
-      .pop()?.content || 'Hello';
+    const userMessage =
+      request.messages.filter((msg) => msg.role === 'user').pop()?.content ||
+      'Hello';
 
     // Generate different responses based on content patterns
     if (userMessage.toLowerCase().includes('hello')) {
@@ -92,7 +95,7 @@ export class MockLiteLLMGateway {
     }
 
     if (userMessage.toLowerCase().includes('weather')) {
-      return 'I don\'t have access to real-time weather data, but I can help you find reliable weather sources!';
+      return "I don't have access to real-time weather data, but I can help you find reliable weather sources!";
     }
 
     if (userMessage.toLowerCase().includes('test')) {
@@ -107,9 +110,14 @@ export class MockLiteLLMGateway {
     return `I understand you're asking about: "${userMessage}". This is a mock response from the LiteLLM gateway for testing purposes.`;
   }
 
-  private calculatePromptTokens(messages: ChatCompletionRequest['messages']): number {
+  private calculatePromptTokens(
+    messages: ChatCompletionRequest['messages']
+  ): number {
     // Simple token estimation: ~4 characters per token
-    const totalChars = messages.reduce((sum, msg) => sum + msg.content.length, 0);
+    const totalChars = messages.reduce(
+      (sum, msg) => sum + msg.content.length,
+      0
+    );
     return Math.ceil(totalChars / 4);
   }
 
@@ -143,7 +151,8 @@ export class MockLiteLLMGateway {
     }
 
     const inputCost = (response.usage.prompt_tokens / 1000) * modelCost.input;
-    const outputCost = (response.usage.completion_tokens / 1000) * modelCost.output;
+    const outputCost =
+      (response.usage.completion_tokens / 1000) * modelCost.output;
 
     return inputCost + outputCost;
   }

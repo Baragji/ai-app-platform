@@ -39,9 +39,10 @@ export default function LLMTestPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ModelCallResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
+
   const isDev = process.env.NODE_ENV === 'development';
-  const langfuseBaseUrl = process.env.NEXT_PUBLIC_LANGFUSE_BASE_URL || 'https://cloud.langfuse.com';
+  const langfuseBaseUrl =
+    process.env.NEXT_PUBLIC_LANGFUSE_BASE_URL || 'https://cloud.langfuse.com';
 
   const models = [
     'gpt-3.5-turbo',
@@ -102,7 +103,7 @@ export default function LLMTestPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-6">
             LiteLLM Model Test
           </h1>
-          
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
@@ -185,7 +186,9 @@ export default function LLMTestPage() {
           {result && (
             <div className="mt-6 space-y-4">
               <div className="p-4 bg-green-50 border border-green-200 rounded-md">
-                <h3 className="text-lg font-medium text-green-800 mb-2">Response</h3>
+                <h3 className="text-lg font-medium text-green-800 mb-2">
+                  Response
+                </h3>
                 <p className="text-green-700 whitespace-pre-wrap">
                   {result.response.choices[0]?.message.content}
                 </p>
@@ -194,17 +197,23 @@ export default function LLMTestPage() {
               {/* Tracing Information - Only in Development Mode */}
               {isDev && result.tracing && (
                 <div className="p-4 bg-gray-50 border border-gray-200 rounded-md">
-                  <h3 className="text-lg font-medium text-gray-800 mb-2">🔍 Debug Information</h3>
+                  <h3 className="text-lg font-medium text-gray-800 mb-2">
+                    🔍 Debug Information
+                  </h3>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm">
-                      <span className="font-medium text-gray-600">Request ID:</span>
+                      <span className="font-medium text-gray-600">
+                        Request ID:
+                      </span>
                       <code className="bg-gray-100 px-2 py-1 rounded text-xs">
                         {result.tracing.requestId}
                       </code>
                     </div>
                     {result.tracing.traceId && (
                       <div className="flex items-center gap-2 text-sm">
-                        <span className="font-medium text-gray-600">Trace ID:</span>
+                        <span className="font-medium text-gray-600">
+                          Trace ID:
+                        </span>
                         <a
                           href={`${langfuseBaseUrl}/trace/${result.tracing.traceId}`}
                           target="_blank"

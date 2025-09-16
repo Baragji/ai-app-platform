@@ -7,7 +7,7 @@ module.exports = {
   transform: {
     '^.+\\.ts$': 'ts-jest',
   },
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/../../apps/web/src/$1',
   },
   setupFilesAfterEnv: ['<rootDir>/setup.ts'],

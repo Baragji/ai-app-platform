@@ -7,7 +7,9 @@ jest.mock('@ai-app-platform/gateway', () => ({
 
 import { createGateway } from '@ai-app-platform/gateway';
 
-const mockCreateGateway = createGateway as jest.MockedFunction<typeof createGateway>;
+const mockCreateGateway = createGateway as jest.MockedFunction<
+  typeof createGateway
+>;
 
 describe('LLM API Route', () => {
   let mockGateway: any;
@@ -70,26 +72,35 @@ describe('LLM API Route', () => {
             typeof msg.content === 'string' &&
             msg.content.length > 0
         );
-        
+
         return isValidModel && isValidMessages && isValidMessage;
       }).not.toThrow();
 
       // Invalid requests should fail validation
       invalidRequests.forEach((request) => {
-        const hasModel = 'model' in request && typeof request.model === 'string' && request.model.length > 0;
-        const hasValidMessages = 'messages' in request && Array.isArray(request.messages) && request.messages.length > 0;
-        
+        const hasModel =
+          'model' in request &&
+          typeof request.model === 'string' &&
+          request.model.length > 0;
+        const hasValidMessages =
+          'messages' in request &&
+          Array.isArray(request.messages) &&
+          request.messages.length > 0;
+
         let hasValidMessageStructure = false;
         if (hasValidMessages) {
-          hasValidMessageStructure = (request as any).messages.every((msg: any) =>
-            msg &&
-            ['system', 'user', 'assistant'].includes(msg.role) &&
-            typeof msg.content === 'string' &&
-            msg.content.length > 0
+          hasValidMessageStructure = (request as any).messages.every(
+            (msg: any) =>
+              msg &&
+              ['system', 'user', 'assistant'].includes(msg.role) &&
+              typeof msg.content === 'string' &&
+              msg.content.length > 0
           );
         }
 
-        expect(hasModel && hasValidMessages && hasValidMessageStructure).toBe(false);
+        expect(hasModel && hasValidMessages && hasValidMessageStructure).toBe(
+          false
+        );
       });
     });
 
