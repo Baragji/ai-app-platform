@@ -53,7 +53,7 @@ export default function ProjectsPage() {
 
   const createProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       const response = await fetch('/api/projects', {
         method: 'POST',
@@ -135,29 +135,41 @@ export default function ProjectsPage() {
 
       {showCreateForm && (
         <div className="mb-8 bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Create New Project</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            Create New Project
+          </h3>
           <form onSubmit={createProject} className="space-y-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Project Name
               </label>
               <input
                 id="name"
                 type="text"
                 value={newProject.name}
-                onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
+                onChange={(e) =>
+                  setNewProject({ ...newProject, name: e.target.value })
+                }
                 required
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Description (optional)
               </label>
               <textarea
                 id="description"
                 value={newProject.description}
-                onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+                onChange={(e) =>
+                  setNewProject({ ...newProject, description: e.target.value })
+                }
                 rows={3}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               />
@@ -183,20 +195,31 @@ export default function ProjectsPage() {
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {projects.map((project) => (
-          <div key={project.id} className="bg-white overflow-hidden shadow rounded-lg">
+          <div
+            key={project.id}
+            className="bg-white overflow-hidden shadow rounded-lg"
+          >
             <div className="p-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900">{project.name}</h3>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  project.status === 'active' ? 'bg-green-100 text-green-800' :
-                  project.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
+                <h3 className="text-lg font-medium text-gray-900">
+                  {project.name}
+                </h3>
+                <span
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    project.status === 'active'
+                      ? 'bg-green-100 text-green-800'
+                      : project.status === 'completed'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-gray-100 text-gray-800'
+                  }`}
+                >
                   {project.status}
                 </span>
               </div>
               {project.description && (
-                <p className="mt-2 text-sm text-gray-500">{project.description}</p>
+                <p className="mt-2 text-sm text-gray-500">
+                  {project.description}
+                </p>
               )}
               <div className="mt-4 text-xs text-gray-400">
                 Created {new Date(project.createdAt).toLocaleDateString()}
@@ -217,7 +240,9 @@ export default function ProjectsPage() {
       {projects.length === 0 && !isLoading && (
         <div className="text-center py-12">
           <h3 className="text-lg font-medium text-gray-900">No projects yet</h3>
-          <p className="mt-2 text-sm text-gray-500">Create your first project to get started</p>
+          <p className="mt-2 text-sm text-gray-500">
+            Create your first project to get started
+          </p>
         </div>
       )}
 

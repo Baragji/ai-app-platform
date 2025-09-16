@@ -6,10 +6,10 @@ export async function GET() {
   try {
     // Check database connection
     await prisma.$queryRaw();
-    
+
     // Check job queue health
     const queueHealth = await getQueueHealth();
-    
+
     return NextResponse.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -23,7 +23,7 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Health check failed:', error);
-    
+
     return NextResponse.json(
       {
         status: 'unhealthy',

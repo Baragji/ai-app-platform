@@ -10,7 +10,7 @@ export default function HomePage() {
         <p className="text-xl text-gray-600 mb-8">
           A production-ready modular monolith built with Next.js 14
         </p>
-        
+
         <div className="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
           <Link
             href="/projects"
@@ -26,17 +26,19 @@ export default function HomePage() {
           </Link>
         </div>
       </div>
-      
+
       <div className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-6">
-            <h3 className="text-lg font-medium text-gray-900">Authentication</h3>
+            <h3 className="text-lg font-medium text-gray-900">
+              Authentication
+            </h3>
             <p className="mt-2 text-sm text-gray-500">
               NextAuth with email/password and provider-ready setup
             </p>
           </div>
         </div>
-        
+
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-6">
             <h3 className="text-lg font-medium text-gray-900">Database</h3>
@@ -45,7 +47,7 @@ export default function HomePage() {
             </p>
           </div>
         </div>
-        
+
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-6">
             <h3 className="text-lg font-medium text-gray-900">Job Queue</h3>

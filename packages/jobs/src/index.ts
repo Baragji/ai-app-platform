@@ -37,12 +37,14 @@ export const jobQueue = new Queue('ai-app-platform', {
 const jobProcessors = {
   'sample-job': async (job: Job<SampleJobData>) => {
     console.log(`Processing sample job: ${job.data.message}`);
-    
+
     // Simulate some work
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    console.log(`Completed sample job for user: ${job.data.userId || 'anonymous'}`);
-    
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    console.log(
+      `Completed sample job for user: ${job.data.userId || 'anonymous'}`
+    );
+
     return {
       success: true,
       processedAt: new Date().toISOString(),

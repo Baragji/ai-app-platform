@@ -5,6 +5,6 @@ const nextConfig = {
     '@ai-app-platform/db',
     '@ai-app-platform/jobs',
   ],
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

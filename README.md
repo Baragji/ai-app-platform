@@ -76,34 +76,38 @@ Visit [http://localhost:3000](http://localhost:3000)
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `NODE_ENV` | Environment | `development` |
-| `PORT` | Server port | `3000` |
-| `DATABASE_URL` | PostgreSQL connection | Required |
-| `REDIS_URL` | Redis connection | `redis://localhost:6379` |
-| `NEXTAUTH_SECRET` | NextAuth secret key | Required |
-| `NEXTAUTH_URL` | NextAuth base URL | `http://localhost:3000` |
+| Variable          | Description           | Default                  |
+| ----------------- | --------------------- | ------------------------ |
+| `NODE_ENV`        | Environment           | `development`            |
+| `PORT`            | Server port           | `3000`                   |
+| `DATABASE_URL`    | PostgreSQL connection | Required                 |
+| `REDIS_URL`       | Redis connection      | `redis://localhost:6379` |
+| `NEXTAUTH_SECRET` | NextAuth secret key   | Required                 |
+| `NEXTAUTH_URL`    | NextAuth base URL     | `http://localhost:3000`  |
 
 ## Available Scripts
 
 ### Development
+
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm start` - Start production server
 
 ### Database
+
 - `npm run migrate` - Run database migrations
 - `npm run seed` - Seed database with demo data
 - `npm run generate` - Generate Prisma client
 
 ### Testing
+
 - `npm run test` - Run unit tests
 - `npm run e2e` - Run e2e tests
 - `npm run lint` - Run ESLint
 - `npm run format` - Format code with Prettier
 
 ### Utilities
+
 - `npm run smoke` - Health check smoke test
 - `npm run clean` - Clean build artifacts
 
@@ -166,11 +170,13 @@ npm run e2e:headed --workspace=tests/e2e
 ## API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/signin` - Sign in
 - `POST /api/auth/signout` - Sign out
 - `GET /api/auth/session` - Get session
 
 ### Projects (Protected)
+
 - `GET /api/projects` - List projects
 - `POST /api/projects` - Create project
 - `GET /api/projects/[id]` - Get project
@@ -178,19 +184,23 @@ npm run e2e:headed --workspace=tests/e2e
 - `DELETE /api/projects/[id]` - Delete project
 
 ### System
+
 - `GET /health` - Health check
 
 ## Project Structure
 
 ### Apps
+
 - **web**: Next.js application with pages, components, and API routes
 
 ### Packages
+
 - **config**: Environment configuration and validation
 - **db**: Database schema, migrations, and Prisma client
 - **jobs**: Job queue setup, workers, and job definitions
 
 ### Tests
+
 - **unit**: Jest tests for models and API routes
 - **e2e**: Playwright tests for user workflows
 
@@ -205,6 +215,7 @@ npm run e2e:headed --workspace=tests/e2e
 ## Demo Account
 
 For testing, use the seeded demo account:
+
 - **Email**: `demo@example.com`
 - **Password**: `demo123`
 
@@ -227,6 +238,7 @@ docker run -p 3000:3000 ai-app-platform
 ### Environment Variables for Production
 
 Ensure all required environment variables are set:
+
 - Generate a secure `NEXTAUTH_SECRET`
 - Configure production `DATABASE_URL`
 - Set appropriate `NEXTAUTH_URL`
@@ -259,24 +271,27 @@ The application includes health checks at `/health`:
 ### Common Issues
 
 1. **Database Connection Errors**
+
    ```bash
    # Check if PostgreSQL is running
    docker compose ps db
-   
+
    # Restart database
    docker compose restart db
    ```
 
 2. **Redis Connection Errors**
+
    ```bash
    # Check Redis status
    docker compose ps redis
-   
+
    # View Redis logs
    docker compose logs redis
    ```
 
 3. **Build Errors**
+
    ```bash
    # Clean and reinstall
    npm run clean
@@ -302,18 +317,21 @@ The application includes health checks at `/health`:
 This foundation is ready for advanced AI features:
 
 ### LiteLLM Integration
+
 - **Multi-Provider LLM Gateway**: Add LiteLLM for unified access to OpenAI, Anthropic, Google, and local models
 - **Request Routing**: Implement intelligent model selection based on task complexity
 - **Cost Optimization**: Automatic fallback to cheaper models for simple tasks
 - **Rate Limiting**: Built-in request throttling and retry logic
 
 ### Langfuse Observability
+
 - **LLM Monitoring**: Track model performance, costs, and latency
-- **Conversation Analytics**: Monitor user interactions and model responses  
+- **Conversation Analytics**: Monitor user interactions and model responses
 - **Prompt Management**: Version control and A/B test prompts
 - **Quality Metrics**: Measure response quality and user satisfaction
 
 ### Implementation Plan
+
 1. **Add LiteLLM package** to handle model orchestration
 2. **Integrate Langfuse SDK** for comprehensive observability
 3. **Create AI service layer** in packages/ai with proper abstractions
