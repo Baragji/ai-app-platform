@@ -1,8 +1,8 @@
 # Build stage  
-FROM node:20-alpine AS builder
+FROM node:20-bookworm-slim AS builder
 
-# Install required system dependencies for Prisma
-RUN apk add --no-cache openssl libc6-compat
+# Install required system dependencies
+RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -30,16 +30,16 @@ RUN npm run generate --workspace=packages/db
 RUN npm run build
 
 # Production stage
-FROM node:20-alpine AS runner
+FROM node:20-bookworm-slim AS runner
 
 # Install system dependencies
-RUN apk add --no-cache curl openssl libc6-compat
+RUN apt-get update && apt-get install -y curl openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 # Create non-root user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN groupadd --gid 1001 nodejs
+RUN useradd --uid 1001 --gid nodejs --shell /bin/bash --create-home nextjs
 
 # Copy built application
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./apps/web/.next

@@ -2,6 +2,8 @@
 
 A production-ready modular monolith built with Next.js 14, featuring authentication, database management, job queues, and comprehensive testing.
 
+[![CI](https://github.com/Baragji/ai-app-platform/workflows/CI/badge.svg)](https://github.com/Baragji/ai-app-platform/actions/workflows/ci.yml)
+
 ## Features
 
 - 🚀 **Next.js 14** with TypeScript and App Router
