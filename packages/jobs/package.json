@@ -1,0 +1,22 @@
+{
+  "name": "@ai-app-platform/jobs",
+  "version": "1.0.0",
+  "description": "Job queue system with BullMQ for AI App Platform",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "worker": "tsx src/worker.ts"
+  },
+  "dependencies": {
+    "bullmq": "^4.15.0",
+    "ioredis": "^5.3.2"
+  },
+  "devDependencies": {
+    "tsx": "^4.6.0",
+    "typescript": "^5.3.0",
+    "@types/node": "^20.10.0"
+  }
+}
