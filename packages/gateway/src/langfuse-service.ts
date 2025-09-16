@@ -1,4 +1,8 @@
-import { ChatCompletionRequest, ChatCompletionResponse, GatewayConfig } from './types';
+import {
+  ChatCompletionRequest,
+  ChatCompletionResponse,
+  GatewayConfig,
+} from './types';
 
 // Dynamic import for Langfuse to avoid Jest issues
 let Langfuse: any = null;
@@ -23,7 +27,11 @@ export class LangfuseService {
 
   constructor(config: GatewayConfig) {
     this.config = config;
-    if (config.langfuse?.enabled && config.langfuse.publicKey && config.langfuse.secretKey) {
+    if (
+      config.langfuse?.enabled &&
+      config.langfuse.publicKey &&
+      config.langfuse.secretKey
+    ) {
       this.enabled = true;
     }
   }
@@ -81,8 +89,12 @@ export class LangfuseService {
         sessionId: metadata?.sessionId,
         metadata: {
           model: request.model,
-          ...(request.temperature !== undefined && { temperature: request.temperature }),
-          ...(request.max_tokens !== undefined && { max_tokens: request.max_tokens }),
+          ...(request.temperature !== undefined && {
+            temperature: request.temperature,
+          }),
+          ...(request.max_tokens !== undefined && {
+            max_tokens: request.max_tokens,
+          }),
           ...metadata,
         },
       });
@@ -93,8 +105,12 @@ export class LangfuseService {
         model: request.model,
         input: request.messages,
         modelParameters: {
-          ...(request.temperature !== undefined && { temperature: request.temperature }),
-          ...(request.max_tokens !== undefined && { max_tokens: request.max_tokens }),
+          ...(request.temperature !== undefined && {
+            temperature: request.temperature,
+          }),
+          ...(request.max_tokens !== undefined && {
+            max_tokens: request.max_tokens,
+          }),
         },
       });
 
@@ -136,14 +152,20 @@ export class LangfuseService {
         model: request.model,
         input: request.messages,
         output: response.choices?.[0]?.message,
-        usage: response.usage ? {
-          promptTokens: response.usage.prompt_tokens,
-          completionTokens: response.usage.completion_tokens,
-          totalTokens: response.usage.total_tokens,
-        } : undefined,
+        usage: response.usage
+          ? {
+              promptTokens: response.usage.prompt_tokens,
+              completionTokens: response.usage.completion_tokens,
+              totalTokens: response.usage.total_tokens,
+            }
+          : undefined,
         modelParameters: {
-          ...(request.temperature !== undefined && { temperature: request.temperature }),
-          ...(request.max_tokens !== undefined && { max_tokens: request.max_tokens }),
+          ...(request.temperature !== undefined && {
+            temperature: request.temperature,
+          }),
+          ...(request.max_tokens !== undefined && {
+            max_tokens: request.max_tokens,
+          }),
         },
         metadata: {
           latency_ms: latency,
@@ -201,7 +223,7 @@ export class LangfuseService {
         name,
         metadata,
       });
-      
+
       await this.langfuse.flushAsync();
     } catch (error) {
       console.warn('Failed to create Langfuse event:', error);

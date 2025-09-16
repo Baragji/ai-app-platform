@@ -2,6 +2,8 @@
 
 A production-ready modular monolith built with Next.js 14, featuring authentication, database management, job queues, and comprehensive testing.
 
+[![CI](https://github.com/Baragji/ai-app-platform/workflows/CI/badge.svg)](https://github.com/Baragji/ai-app-platform/actions/workflows/ci.yml)
+
 ## Features
 
 - 🚀 **Next.js 14** with TypeScript and App Router
@@ -329,16 +331,18 @@ The platform now includes **LiteLLM integration** for unified access to multiple
 #### Quick Start with LiteLLM
 
 1. **Install and Start LiteLLM Server**:
+
    ```bash
    pip install litellm[proxy]
    litellm --config /path/to/config.yaml
    ```
 
 2. **Configure Provider API Keys**:
+
    ```bash
    # Copy and edit environment file
    cp .env.example .env
-   
+
    # Add your provider API keys:
    OPENAI_API_KEY=your-openai-key
    ANTHROPIC_API_KEY=your-anthropic-key
@@ -347,10 +351,11 @@ The platform now includes **LiteLLM integration** for unified access to multiple
    ```
 
 3. **Test the Integration**:
+
    ```bash
    # Start the development server
    npm run dev
-   
+
    # Visit the test page
    open http://localhost:3000/llm-test
    ```
@@ -359,14 +364,14 @@ The platform now includes **LiteLLM integration** for unified access to multiple
 
 Add your API keys to `.env` for the providers you want to use:
 
-| Provider | Environment Variables | Models |
-|----------|----------------------|---------|
-| **OpenAI** | `OPENAI_API_KEY` | gpt-3.5-turbo, gpt-4, gpt-4-turbo |
-| **Anthropic** | `ANTHROPIC_API_KEY` | claude-3-sonnet, claude-3-haiku |
-| **Google AI** | `GOOGLE_API_KEY` | gemini-pro, gemini-1.5-pro |
-| **Azure OpenAI** | `AZURE_API_KEY`, `AZURE_API_BASE`, `AZURE_API_VERSION` | Azure-hosted models |
-| **Cohere** | `COHERE_API_KEY` | command-r, command-r-plus |
-| **Hugging Face** | `HUGGINGFACE_API_KEY` | Various open-source models |
+| Provider         | Environment Variables                                  | Models                            |
+| ---------------- | ------------------------------------------------------ | --------------------------------- |
+| **OpenAI**       | `OPENAI_API_KEY`                                       | gpt-3.5-turbo, gpt-4, gpt-4-turbo |
+| **Anthropic**    | `ANTHROPIC_API_KEY`                                    | claude-3-sonnet, claude-3-haiku   |
+| **Google AI**    | `GOOGLE_API_KEY`                                       | gemini-pro, gemini-1.5-pro        |
+| **Azure OpenAI** | `AZURE_API_KEY`, `AZURE_API_BASE`, `AZURE_API_VERSION` | Azure-hosted models               |
+| **Cohere**       | `COHERE_API_KEY`                                       | command-r, command-r-plus         |
+| **Hugging Face** | `HUGGINGFACE_API_KEY`                                  | Various open-source models        |
 
 #### LiteLLM Configuration Example
 
@@ -378,12 +383,12 @@ model_list:
     litellm_params:
       model: gpt-3.5-turbo
       api_key: os.environ/OPENAI_API_KEY
-  
+
   - model_name: claude-3-sonnet
     litellm_params:
       model: claude-3-sonnet-20240229
       api_key: os.environ/ANTHROPIC_API_KEY
-  
+
   - model_name: gemini-pro
     litellm_params:
       model: gemini/gemini-pro
@@ -391,10 +396,11 @@ model_list:
 
 general_settings:
   master_key: your-master-key
-  database_url: "postgresql://..."  # Optional: for logging
+  database_url: 'postgresql://...' # Optional: for logging
 ```
 
 Start LiteLLM with the config:
+
 ```bash
 litellm --config litellm_config.yaml --port 4000
 ```
@@ -409,6 +415,7 @@ The platform includes comprehensive testing support:
 - **Performance Monitoring**: Built-in latency and cost tracking
 
 Test the LLM integration:
+
 ```bash
 # Run unit tests
 npm run test --workspace=packages/gateway
