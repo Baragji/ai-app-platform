@@ -5,19 +5,24 @@ This document outlines the security practices implemented for GitHub Actions wor
 ## Least Privilege Permissions
 
 ### Default Repository Permissions
+
 All workflows use `permissions: read-all` as the default, granting minimal read access to:
+
 - Repository contents
 - Metadata
 - Actions and packages (read-only)
 
 ### Job-Specific Permissions
+
 Each job only receives additional permissions when explicitly required:
 
 #### Content Write Access
+
 - **Not required** - This repository uses external services for deployments
 - All jobs operate with read-only access to repository contents
 
 #### Actions Permissions
+
 - **actions: read** - Required for caching and artifact operations
 - **contents: read** - Required for checking out code
 - **metadata: read** - Required for accessing repository metadata
@@ -42,6 +47,7 @@ Each job only receives additional permissions when explicitly required:
 ## Action Pinning Policy
 
 ### Pinning Strategy
+
 All GitHub Actions are pinned to specific SHA commits rather than floating tags:
 
 ```yaml
@@ -54,14 +60,14 @@ uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
 ### Pinned Actions in Use
 
-| Action | Pinned SHA | Version | Purpose |
-|--------|------------|---------|---------|
-| `actions/checkout` | `692973e3d937129bcbf40652eb9f2f61becf3332` | v4.1.7 | Code checkout |
-| `actions/setup-node` | `1e60f620b9541d16bece96c5465dc8ee9832be0b` | v4.0.3 | Node.js setup |
-| `actions/cache` | `0c45773b623bea8c8e75f6c82b208c3cf94ea4f9` | v4.0.2 | Dependency caching |
-| `actions/upload-artifact` | `89ef406dd8d7e03cfd12d9e0a4a378f454709029` | v4.4.0 | Artifact upload |
-| `docker/setup-buildx-action` | `c47758b77c9736f4b2ef4073d4d51994fabfe349` | v3.7.1 | Docker Buildx |
-| `docker/build-push-action` | `5cd11c3a4ced054e52742c5fd54dca954e0edd85` | v6.7.0 | Docker build |
+| Action                       | Pinned SHA                                 | Version | Purpose            |
+| ---------------------------- | ------------------------------------------ | ------- | ------------------ |
+| `actions/checkout`           | `692973e3d937129bcbf40652eb9f2f61becf3332` | v4.1.7  | Code checkout      |
+| `actions/setup-node`         | `1e60f620b9541d16bece96c5465dc8ee9832be0b` | v4.0.3  | Node.js setup      |
+| `actions/cache`              | `0c45773b623bea8c8e75f6c82b208c3cf94ea4f9` | v4.0.2  | Dependency caching |
+| `actions/upload-artifact`    | `89ef406dd8d7e03cfd12d9e0a4a378f454709029` | v4.4.0  | Artifact upload    |
+| `docker/setup-buildx-action` | `c47758b77c9736f4b2ef4073d4d51994fabfe349` | v3.7.1  | Docker Buildx      |
+| `docker/build-push-action`   | `5cd11c3a4ced054e52742c5fd54dca954e0edd85` | v6.7.0  | Docker build       |
 
 ### Why Pinning Matters
 
@@ -83,6 +89,7 @@ uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 ## OIDC Usage Recommendations
 
 ### Current State
+
 This repository currently uses basic authentication mechanisms and does not require cloud deployments with OIDC.
 
 ### Future Cloud Deployments
@@ -90,10 +97,11 @@ This repository currently uses basic authentication mechanisms and does not requ
 When implementing cloud deployments, follow these OIDC best practices:
 
 #### AWS Integration
+
 ```yaml
 permissions:
-  id-token: write   # Required for OIDC
-  contents: read    # Minimal repo access
+  id-token: write # Required for OIDC
+  contents: read # Minimal repo access
 
 steps:
   - name: Configure AWS credentials
@@ -106,6 +114,7 @@ steps:
 ```
 
 #### Azure Integration
+
 ```yaml
 permissions:
   id-token: write
@@ -121,6 +130,7 @@ steps:
 ```
 
 #### Google Cloud Integration
+
 ```yaml
 permissions:
   id-token: write
@@ -164,18 +174,22 @@ When moving to cloud deployments:
 ## Security Monitoring
 
 ### Workflow Security Checks
+
 - All workflows run with minimal required permissions
 - Actions are pinned to prevent supply chain attacks
 - No secrets are exposed in workflow logs
 - External dependencies are explicitly declared
 
 ### Regular Maintenance
+
 - **Monthly action updates** - Review and update pinned action versions
 - **Quarterly security review** - Audit permissions and access patterns
 - **Annual policy review** - Update security guidelines and best practices
 
 ### Incident Response
+
 If a security issue is identified:
+
 1. **Disable affected workflows** immediately
 2. **Rotate any potentially compromised secrets**
 3. **Update pinned action versions** if supply chain compromise
