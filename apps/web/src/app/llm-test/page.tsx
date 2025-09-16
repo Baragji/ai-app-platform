@@ -25,6 +25,10 @@ interface ModelCallResult {
     latency: number;
     cost?: number;
   };
+  tracing?: {
+    traceId?: string;
+    requestId?: string;
+  };
 }
 
 export default function LLMTestPage() {
@@ -35,6 +39,9 @@ export default function LLMTestPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ModelCallResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  const isDev = process.env.NODE_ENV === 'development';
+  const langfuseBaseUrl = process.env.NEXT_PUBLIC_LANGFUSE_BASE_URL || 'https://cloud.langfuse.com';
 
   const models = [
     'gpt-3.5-turbo',
@@ -183,6 +190,34 @@ export default function LLMTestPage() {
                   {result.response.choices[0]?.message.content}
                 </p>
               </div>
+
+              {/* Tracing Information - Only in Development Mode */}
+              {isDev && result.tracing && (
+                <div className="p-4 bg-gray-50 border border-gray-200 rounded-md">
+                  <h3 className="text-lg font-medium text-gray-800 mb-2">🔍 Debug Information</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="font-medium text-gray-600">Request ID:</span>
+                      <code className="bg-gray-100 px-2 py-1 rounded text-xs">
+                        {result.tracing.requestId}
+                      </code>
+                    </div>
+                    {result.tracing.traceId && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="font-medium text-gray-600">Trace ID:</span>
+                        <a
+                          href={`${langfuseBaseUrl}/trace/${result.tracing.traceId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded text-xs underline transition-colors"
+                        >
+                          {result.tracing.traceId}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">

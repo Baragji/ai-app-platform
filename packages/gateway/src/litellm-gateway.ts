@@ -7,22 +7,41 @@ import {
   GatewayConfig,
   ModelCallResult,
 } from './types';
+import { LangfuseService } from './langfuse-service';
+import { randomUUID } from 'crypto';
 
 export class LiteLLMGateway {
   private config: GatewayConfig;
+  private langfuseService: LangfuseService;
 
   constructor(config: GatewayConfig) {
     this.config = config;
+    this.langfuseService = new LangfuseService(config);
   }
 
-  async chatCompletion(request: ChatCompletionRequest): Promise<ModelCallResult> {
+  async chatCompletion(
+    request: ChatCompletionRequest,
+    metadata?: { userId?: string; sessionId?: string; [key: string]: any }
+  ): Promise<ModelCallResult> {
     // Validate request
     const validatedRequest = ChatCompletionRequestSchema.parse(request);
 
+    // Generate unique request ID for tracing
+    const requestId = randomUUID();
     const startTime = Date.now();
 
+    // Start Langfuse trace if enabled
+    const traceId = await this.langfuseService.startTrace(
+      validatedRequest,
+      requestId,
+      metadata
+    );
+
+    let error: Error | undefined;
+    let response: ChatCompletionResponse | undefined;
+
     try {
-      const response = await fetch(`${this.config.baseUrl}/chat/completions`, {
+      const httpResponse = await fetch(`${this.config.baseUrl}/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -31,32 +50,55 @@ export class LiteLLMGateway {
         signal: AbortSignal.timeout(this.config.timeout),
       });
 
-      const responseData = await response.json();
+      const responseData = await httpResponse.json();
 
-      if (!response.ok) {
+      if (!httpResponse.ok) {
         const errorData = LiteLLMErrorSchema.parse(responseData);
-        throw new Error(`LiteLLM API Error: ${errorData.error.message}`);
+        error = new Error(`LiteLLM API Error: ${errorData.error.message}`);
+        throw error;
       }
 
-      const validatedResponse = ChatCompletionResponseSchema.parse(responseData);
+      response = ChatCompletionResponseSchema.parse(responseData);
       const latency = Date.now() - startTime;
 
       // Calculate cost if token information is available
-      const cost = this.calculateCost(validatedResponse, validatedRequest.model);
+      const cost = this.calculateCost(response, validatedRequest.model);
+
+      // Update Langfuse trace with successful completion
+      if (traceId) {
+        await this.langfuseService.updateTrace(
+          traceId,
+          validatedRequest,
+          response,
+          latency,
+          cost
+        );
+      }
 
       return {
-        response: validatedResponse,
+        response,
         latency,
         cost,
+        traceId,
+        requestId,
       };
-    } catch (error) {
+    } catch (caughtError) {
       const latency = Date.now() - startTime;
+      error = caughtError instanceof Error ? caughtError : new Error('Unknown error occurred');
       
-      if (error instanceof Error) {
-        throw new Error(`Gateway Error (${latency}ms): ${error.message}`);
+      // Update Langfuse trace with error
+      if (traceId && response) {
+        await this.langfuseService.updateTrace(
+          traceId,
+          validatedRequest,
+          response,
+          latency,
+          undefined,
+          error
+        );
       }
       
-      throw new Error(`Gateway Error (${latency}ms): Unknown error occurred`);
+      throw new Error(`Gateway Error (${latency}ms): ${error.message}`);
     }
   }
 

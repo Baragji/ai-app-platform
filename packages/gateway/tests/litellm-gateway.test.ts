@@ -12,6 +12,11 @@ describe('LiteLLMGateway', () => {
     gateway = new LiteLLMGateway({
       baseUrl: 'http://localhost:4000',
       timeout: 30000,
+      langfuse: {
+        publicKey: '',
+        secretKey: '',
+        enabled: false,
+      },
     });
     mockFetch.mockClear();
   });
@@ -60,6 +65,8 @@ describe('LiteLLMGateway', () => {
       expect(result.response).toEqual(mockResponse);
       expect(result.latency).toBeGreaterThanOrEqual(0);
       expect(result.cost).toBeGreaterThan(0); // Should calculate cost for gpt-3.5-turbo
+      expect(result.requestId).toBeDefined();
+      expect(result.traceId).toBeUndefined(); // Langfuse disabled in test
 
       expect(mockFetch).toHaveBeenCalledWith(
         'http://localhost:4000/chat/completions',
