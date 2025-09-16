@@ -1,0 +1,127 @@
+name: OpenSSF Scorecard
+
+on:
+  # Run on PRs to main/develop
+  pull_request:
+    branches: [main, develop]
+  
+  # Run nightly on main branch
+  schedule:
+    - cron: '0 2 * * *'  # 2 AM UTC daily
+  
+  # Allow manual triggers
+  workflow_dispatch:
+
+# Default permissions for security
+permissions: read-all
+
+jobs:
+  analysis:
+    name: OpenSSF Scorecard Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      # Needed to upload results to code-scanning dashboard
+      security-events: write
+      # Needed to upload results as artifacts
+      actions: read
+      contents: read
+      # Needed for GitHub token to analyze the repository
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          persist-credentials: false
+
+      - name: Run OpenSSF Scorecard Analysis
+        uses: ossf/scorecard-action@62b2cac7ed8198b15735ed49ab1e5cf35480ba46 # v2.4.0
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          # Publish results to OpenSSF REST API for increased transparency
+          # Note: This will make the results publicly visible
+          publish_results: true
+
+      - name: Upload SARIF results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@2c779ab0d087cd7fe7b826087247c2c81f27bfa6 # v3.26.5
+        with:
+          sarif_file: results.sarif
+
+      - name: Upload Scorecard results as artifact
+        uses: actions/upload-artifact@89ef406dd8d7e03cfd12d9e0a4a378f454709029 # v4.4.0
+        with:
+          name: scorecard-results-${{ github.run_id }}
+          path: results.sarif
+          retention-days: 30
+
+      - name: Parse Scorecard results
+        id: parse
+        run: |
+          # Extract overall score from SARIF results
+          SCORE=$(jq -r '.runs[0].properties.score // "N/A"' results.sarif)
+          echo "score=$SCORE" >> $GITHUB_OUTPUT
+          
+          # Count issues by severity
+          CRITICAL=$(jq '[.runs[0].results[] | select(.level == "error")] | length' results.sarif)
+          HIGH=$(jq '[.runs[0].results[] | select(.level == "warning")] | length' results.sarif)
+          MEDIUM=$(jq '[.runs[0].results[] | select(.level == "note")] | length' results.sarif)
+          
+          echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
+          echo "high=$HIGH" >> $GITHUB_OUTPUT
+          echo "medium=$MEDIUM" >> $GITHUB_OUTPUT
+
+      - name: Create Scorecard summary
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          ## 🛡️ OpenSSF Scorecard Results
+          
+          **Overall Score:** ${{ steps.parse.outputs.score }}/10
+          
+          **Issues Found:**
+          - 🔴 Critical: ${{ steps.parse.outputs.critical }}
+          - 🟡 High: ${{ steps.parse.outputs.high }}
+          - 🔵 Medium: ${{ steps.parse.outputs.medium }}
+          
+          **Detailed Results:**
+          - View full results in the [Security tab](../security/code-scanning)
+          - Download detailed report from [workflow artifacts](../actions/runs/${{ github.run_id }})
+          
+          **About OpenSSF Scorecard:**
+          The OpenSSF Scorecard evaluates open source projects for supply chain security risks.
+          It provides a score from 0-10 based on various security practices and policies.
+          
+          [Learn more about OpenSSF Scorecard](https://github.com/ossf/scorecard)
+          EOF
+
+      - name: Comment on PR (if this is a PR)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const score = '${{ steps.parse.outputs.score }}';
+            const critical = '${{ steps.parse.outputs.critical }}';
+            const high = '${{ steps.parse.outputs.high }}';
+            const medium = '${{ steps.parse.outputs.medium }}';
+            
+            const comment = `## 🛡️ OpenSSF Scorecard Analysis
+            
+            **Overall Score:** ${score}/10
+            
+            **Issues Found:**
+            - 🔴 Critical: ${critical}
+            - 🟡 High: ${high}  
+            - 🔵 Medium: ${medium}
+            
+            **View Details:**
+            - [Security Dashboard](${context.payload.repository.html_url}/security/code-scanning)
+            - [Workflow Results](${context.payload.repository.html_url}/actions/runs/${context.runId})
+            
+            *This analysis helps ensure our supply chain security practices meet industry standards.*`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

@@ -49,6 +49,16 @@
 - Changed to `npx playwright install --with-deps` to install browsers and system dependencies
 - Added proper working directory specification
 
+### Issue 6: Deprecated Cache Actions (CRITICAL FIX)
+
+**Problem**: CI failing with "This request has been automatically failed because it uses a deprecated version of `actions/cache`"
+**Root Cause**: Using `actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9` (v4.0.2) which has been deprecated
+**Fix**:
+
+- Updated all `actions/cache` references from v4.0.2 to v4.1.0
+- Updated cache SHA from `0c45773b623bea8c8e75f6c82b208c3cf94ea4f9` to `2cdf405574d6ef1f33a1d12acccd3ae82f47b3f2`
+- All cache operations now use the latest stable version
+
 ## CI Workflow Improvements
 
 ### Job Dependency Chain
@@ -81,7 +91,27 @@ Enhanced artifact collection for debugging:
 
 - **Playwright reports**: HTML reports uploaded on E2E test failures
 - **Playwright traces**: Detailed trace files for debugging test failures
-- Both retained for 30 days for investigation
+- **Supply chain artifacts**: SBOM, provenance, and signatures
+- **Docker image**: Complete container image for verification
+- All retained for 30 days for investigation
+
+### Supply Chain Security Integration
+
+Added comprehensive supply chain security features:
+
+- **Cosign keyless signing**: Container images signed with OIDC
+- **SBOM generation**: Software Bill of Materials with Anchore
+- **Build provenance**: Cryptographically signed build attestations
+- **Signature verification**: Automated verification of all signatures
+
+### Security Analysis Integration
+
+Added OpenSSF Scorecard for continuous security monitoring:
+
+- **PR analysis**: Automated security analysis on pull requests
+- **Nightly monitoring**: Daily security posture assessment
+- **Security dashboard**: Results integrated with GitHub Security tab
+- **PR comments**: Automatic reporting of security scores
 
 ## Local Development Commands
 
@@ -141,3 +171,38 @@ CI uses these safe default environment variables:
 - `LITELLM_TIMEOUT`: Reasonable timeout for tests
 
 No production secrets are used in CI.
+
+## New Security Features
+
+### Supply Chain Security
+
+The CI pipeline now includes comprehensive supply chain security:
+
+- **Container Image Signing**: All Docker images are signed with cosign using keyless OIDC
+- **SBOM Generation**: Software Bill of Materials created and signed for every build
+- **Build Provenance**: Cryptographic attestation of the build process
+- **Verification Steps**: Automated verification of all signatures
+
+### OpenSSF Scorecard Integration
+
+Added automated security analysis:
+
+- **Pull Request Analysis**: Security posture evaluated on every PR
+- **Nightly Monitoring**: Daily security assessment on main branch
+- **GitHub Security Integration**: Results uploaded to Security tab
+- **Comprehensive Documentation**: Complete guide in `docs/security/scorecard.md`
+
+## Workflow Approval Requirements
+
+**Important**: New workflows may require approval when first introduced due to GitHub's security policies for third-party Actions. This is expected for:
+
+- OpenSSF Scorecard workflow (uses `ossf/scorecard-action`)
+- Supply chain security features (uses `sigstore/cosign-installer`, `anchore/sbom-action`)
+
+Repository administrators can approve these workflows in the Actions tab.
+
+## Documentation Updates
+
+- **docs/supply-chain.md**: Complete supply chain security documentation with verification commands
+- **docs/security/scorecard.md**: Comprehensive OpenSSF Scorecard guide and interpretation
+- **docs/ci-debug.md**: Updated with all fixes and new features
