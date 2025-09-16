@@ -1,5 +1,3 @@
-import { PrismaClient } from '@prisma/client';
-
 // Mock PrismaClient
 const mockPrisma = {
   user: {
@@ -9,11 +7,7 @@ const mockPrisma = {
     update: jest.fn(),
     delete: jest.fn(),
   },
-} as unknown as PrismaClient;
-
-jest.mock('@ai-app-platform/db', () => ({
-  prisma: mockPrisma,
-}));
+};
 
 describe('User Model', () => {
   beforeEach(() => {

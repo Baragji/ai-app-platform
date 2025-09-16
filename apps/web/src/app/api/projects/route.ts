@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { z } from 'zod';
-import { prisma } from '@ai-app-platform/db';
+import { prisma } from '@/lib/db';
 import { authOptions } from '@/lib/auth';
-import { addSampleJob } from '@ai-app-platform/jobs';
+import { addSampleJob } from '@/lib/jobs';
 
 const createProjectSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),

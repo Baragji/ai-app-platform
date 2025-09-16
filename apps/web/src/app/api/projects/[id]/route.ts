@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { z } from 'zod';
-import { prisma } from '@ai-app-platform/db';
+import { prisma } from '@/lib/db';
 import { authOptions } from '@/lib/auth';
 
 const updateProjectSchema = z.object({

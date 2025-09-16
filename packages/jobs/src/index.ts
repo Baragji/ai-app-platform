@@ -7,10 +7,7 @@ const config = {
 };
 
 // Create Redis connection
-const connection = new Redis(config.REDIS_URL, {
-  maxRetriesPerRequest: 3,
-  retryDelayOnFailover: 100,
-});
+const connection = new Redis(config.REDIS_URL);
 
 // Job types
 export interface SampleJobData {
@@ -23,7 +20,7 @@ export interface JobTypes {
 }
 
 // Create queue
-export const jobQueue = new Queue<JobTypes>('ai-app-platform', {
+export const jobQueue = new Queue('ai-app-platform', {
   connection,
   defaultJobOptions: {
     removeOnComplete: 100,
@@ -62,7 +59,7 @@ export function createWorker(): Worker {
     return worker;
   }
 
-  worker = new Worker<JobTypes>(
+  worker = new Worker(
     'ai-app-platform',
     async (job) => {
       const processor = jobProcessors[job.name as keyof JobTypes];

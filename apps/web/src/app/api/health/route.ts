@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@ai-app-platform/db';
-import { getQueueHealth } from '@ai-app-platform/jobs';
+import { prisma } from '@/lib/db';
+import { getQueueHealth } from '@/lib/jobs';
 
 export async function GET() {
   try {
     // Check database connection
-    await prisma.$queryRaw`SELECT 1`;
+    await prisma.$queryRaw();
     
     // Check job queue health
     const queueHealth = await getQueueHealth();

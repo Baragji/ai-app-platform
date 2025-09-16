@@ -1,7 +1,7 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { compare } from 'bcryptjs';
-import { prisma } from '@ai-app-platform/db';
+import { prisma } from './db';
 
 const config = {
   NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET!,
@@ -15,7 +15,6 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: '/auth/signin',
-    signUp: '/auth/signup',
   },
   providers: [
     CredentialsProvider({
