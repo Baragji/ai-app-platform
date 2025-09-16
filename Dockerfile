@@ -42,7 +42,7 @@ RUN groupadd --gid 1001 nodejs
 RUN useradd --uid 1001 --gid nodejs --shell /bin/bash --create-home nextjs
 
 # Copy built application
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./apps/web/.next
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next ./apps/web/.next
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/package*.json ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps ./apps
