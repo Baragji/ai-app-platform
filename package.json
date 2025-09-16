@@ -1,0 +1,40 @@
+{
+  "name": "ai-app-platform",
+  "version": "1.0.0",
+  "description": "Production-ready modular monolith with Next.js 14",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/web",
+    "build": "npm run build --workspace=apps/web",
+    "start": "npm run start --workspace=apps/web",
+    "test": "npm run test --workspaces --if-present",
+    "e2e": "npm run e2e --workspace=tests/e2e",
+    "lint": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "migrate": "npm run migrate --workspace=apps/web",
+    "seed": "npm run seed --workspace=apps/web",
+    "generate": "npm run generate --workspace=apps/web",
+    "smoke": "curl -f http://localhost:3000/health || exit 1",
+    "clean": "npm run clean --workspaces --if-present",
+    "type-check": "npm run type-check --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0",
+    "prettier": "^3.1.0",
+    "eslint": "^8.55.0",
+    "eslint-config-prettier": "^9.1.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}
