@@ -23,7 +23,10 @@
     "generate": "npm run generate --workspace=apps/web",
     "smoke": "curl -f http://localhost:3000/health || exit 1",
     "clean": "npm run clean --workspaces --if-present",
-    "type-check": "npm run type-check --workspaces --if-present"
+    "type-check": "npm run type-check --workspaces --if-present",
+    "ci:local": "./scripts/ci-local.sh",
+    "ci:quick": "npm run lint && npm run format:check && npm run type-check",
+    "precommit": "npm run format && npm run ci:quick"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
