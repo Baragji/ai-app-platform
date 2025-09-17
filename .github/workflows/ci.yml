@@ -29,9 +29,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: |
-          npm ci
-          npm ci --workspaces
+        run: npm ci --include-workspace-root --workspaces
 
       - name: Build gateway package first
         run: npm run build --workspace=packages/gateway
@@ -85,9 +83,7 @@ jobs:
           key: ${{ runner.os }}-gateway-dist-${{ hashFiles('packages/gateway/src/**/*', 'packages/gateway/package.json', 'packages/gateway/tsconfig.json') }}
 
       - name: Install dependencies
-        run: |
-          npm ci
-          npm ci --workspaces
+        run: npm ci --include-workspace-root --workspaces
 
       - name: Build gateway
         run: npm run build --workspace=packages/gateway
@@ -134,9 +130,7 @@ jobs:
           key: ${{ runner.os }}-gateway-dist-${{ hashFiles('packages/gateway/src/**/*', 'packages/gateway/package.json', 'packages/gateway/tsconfig.json') }}
 
       - name: Install dependencies
-        run: |
-          npm ci
-          npm ci --workspaces
+        run: npm ci --include-workspace-root --workspaces
 
       - name: Build gateway
         run: npm run build --workspace=packages/gateway
@@ -212,9 +206,7 @@ jobs:
           key: ${{ runner.os }}-gateway-dist-${{ hashFiles('packages/gateway/src/**/*', 'packages/gateway/package.json', 'packages/gateway/tsconfig.json') }}
 
       - name: Install dependencies
-        run: |
-          npm ci
-          npm ci --workspaces
+        run: npm ci --include-workspace-root --workspaces
 
       - name: Build gateway
         run: npm run build --workspace=packages/gateway
@@ -291,9 +283,7 @@ jobs:
           key: ${{ runner.os }}-gateway-dist-${{ hashFiles('packages/gateway/src/**/*', 'packages/gateway/package.json', 'packages/gateway/tsconfig.json') }}
 
       - name: Install dependencies
-        run: |
-          npm ci
-          npm ci --workspaces
+        run: npm ci --include-workspace-root --workspaces
 
       - name: Build gateway
         run: npm run build --workspace=packages/gateway
