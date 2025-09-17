@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
@@ -28,7 +28,12 @@ export default function ProjectsClient() {
   }, [status]);
 
   // Simple fetch with retries to reduce flakiness after mutations
-  const fetchWithRetry = async (url: string, init?: RequestInit, retries = 3, backoffMs = 300): Promise<Response> => {
+  const fetchWithRetry = async (
+    url: string,
+    init?: RequestInit,
+    retries = 3,
+    backoffMs = 300
+  ): Promise<Response> => {
     let lastError: unknown = null;
     for (let attempt = 0; attempt < retries; attempt++) {
       try {
@@ -107,7 +112,6 @@ export default function ProjectsClient() {
     }
   };
 
-  
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <section className="mb-8">
@@ -136,29 +140,41 @@ export default function ProjectsClient() {
 
       {showCreateForm && (
         <div className="mb-8 bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Create New Project</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            Create New Project
+          </h3>
           <form onSubmit={createProject} className="space-y-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Project Name
               </label>
               <input
                 id="name"
                 type="text"
                 value={newProject.name}
-                onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
+                onChange={(e) =>
+                  setNewProject({ ...newProject, name: e.target.value })
+                }
                 required
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Description (optional)
               </label>
               <textarea
                 id="description"
                 value={newProject.description}
-                onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+                onChange={(e) =>
+                  setNewProject({ ...newProject, description: e.target.value })
+                }
                 rows={3}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               />
@@ -190,10 +206,13 @@ export default function ProjectsClient() {
             className="bg-white overflow-hidden shadow rounded-lg"
             data-testid="project-card"
             data-project-id={project.id}
-         >
+          >
             <div className="p-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900" data-testid="project-name">
+                <h3
+                  className="text-lg font-medium text-gray-900"
+                  data-testid="project-name"
+                >
                   {project.name}
                 </h3>
                 <span
@@ -201,15 +220,18 @@ export default function ProjectsClient() {
                     project.status === 'active'
                       ? 'bg-green-100 text-green-800'
                       : project.status === 'completed'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-gray-100 text-gray-800'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-gray-100 text-gray-800'
                   }`}
                 >
                   {project.status}
                 </span>
               </div>
               {project.description && (
-                <p className="mt-2 text-sm text-gray-500" data-testid="project-description">
+                <p
+                  className="mt-2 text-sm text-gray-500"
+                  data-testid="project-description"
+                >
                   {project.description}
                 </p>
               )}
@@ -233,7 +255,9 @@ export default function ProjectsClient() {
       {projects.length === 0 && !isLoading && (
         <div className="text-center py-12">
           <p className="text-lg font-medium text-gray-900">No projects yet</p>
-          <p className="mt-2 text-sm text-gray-500">Create your first project to get started</p>
+          <p className="mt-2 text-sm text-gray-500">
+            Create your first project to get started
+          </p>
         </div>
       )}
 

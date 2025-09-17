@@ -1,16 +1,16 @@
-Yousef@MacBook-Pro-tilhrende-Yousef ai-app-platform % 
+Yousef@MacBook-Pro-tilhrende-Yousef ai-app-platform %
 npm run e2e -- tests/projects.spec.ts
 
 > ai-app-platform@1.0.0 e2e
 > npm run e2e --workspace=tests/e2e tests/projects.spec.ts
 
-
 > @ai-app-platform/tests-e2e@1.0.0 e2e
 > playwright test tests/projects.spec.ts
 
-
 Running 24 tests using 4 workers
-  1) [chromium] › tests/projects.spec.ts:42:7 › Project management › should create a new project 
+
+1. [chromium] › tests/projects.spec.ts:42:7 › Project management › should create a new project
+
 
     Error: expect(locator).not.toBeVisible() failed
 
@@ -37,7 +37,8 @@ Running 24 tests using 4 workers
 
     Error Context: test-results/projects-Project-management-should-create-a-new-project-chromium/error-context.md
 
-  2) [chromium] › tests/projects.spec.ts:98:7 › Project management › should delete a project 
+2. [chromium] › tests/projects.spec.ts:98:7 › Project management › should delete a project
+
 
     TimeoutError: page.waitForResponse: Timeout 20000ms exceeded while waiting for event "response"
 
@@ -52,7 +53,8 @@ Running 24 tests using 4 workers
 
     Error Context: test-results/projects-Project-management-should-delete-a-project-chromium/error-context.md
 
-  3) [webkit] › tests/projects.spec.ts:138:7 › Project management › should navigate back to home 
+3. [webkit] › tests/projects.spec.ts:138:7 › Project management › should navigate back to home
+
 
     TimeoutError: page.waitForResponse: Timeout 20000ms exceeded while waiting for event "response"
 
@@ -67,10 +69,10 @@ Running 24 tests using 4 workers
 
     Error Context: test-results/projects-Project-management-should-navigate-back-to-home-webkit/error-context.md
 
-  3 failed
-    [chromium] › tests/projects.spec.ts:42:7 › Project management › should create a new project 
-    [chromium] › tests/projects.spec.ts:98:7 › Project management › should delete a project 
-    [webkit] › tests/projects.spec.ts:138:7 › Project management › should navigate back to home 
-  21 passed (1.0m)
+3 failed
+[chromium] › tests/projects.spec.ts:42:7 › Project management › should create a new project
+[chromium] › tests/projects.spec.ts:98:7 › Project management › should delete a project
+[webkit] › tests/projects.spec.ts:138:7 › Project management › should navigate back to home
+21 passed (1.0m)
 
-  Serving HTML report at http://localhost:58368. Press Ctrl+C to quit.
+Serving HTML report at http://localhost:58368. Press Ctrl+C to quit.

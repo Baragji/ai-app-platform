@@ -15,7 +15,9 @@ test.describe('Home page', () => {
     ).toBeVisible();
 
     // Check navigation links
-    await expect(page.getByRole('link', { name: 'View Projects' })).toBeVisible();
+    await expect(
+      page.getByRole('link', { name: 'View Projects' })
+    ).toBeVisible();
     await expect(page.getByRole('link', { name: 'Sign In' })).toBeVisible();
   });
 
@@ -42,9 +44,13 @@ test.describe('Home page', () => {
     await page.goto('/');
 
     // Check feature cards by targeting the headings specifically
-    await expect(page.getByRole('heading', { name: 'Authentication' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Authentication' })
+    ).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Database' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Job Queue' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Job Queue' })
+    ).toBeVisible();
   });
 
   test('should have responsive navigation', async ({ page }) => {

@@ -27,7 +27,9 @@ test.describe('LLM Test page', () => {
 
     // Fill in prompt
     await page.fill('textarea', 'Hello, this is a test prompt');
-    await expect(page.locator('textarea')).toHaveValue('Hello, this is a test prompt');
+    await expect(page.locator('textarea')).toHaveValue(
+      'Hello, this is a test prompt'
+    );
 
     // Should now be enabled
     await expect(page.locator('button[type="submit"]')).toBeEnabled();
@@ -132,13 +134,17 @@ test.describe('LLM Test page', () => {
     const submitPromise = submitButton.click();
 
     // Check loading state appears
-    await expect(page.getByRole('button', { name: 'Sending...' })).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Sending...' })
+    ).toBeVisible();
 
     // Wait for submit to complete
     await submitPromise;
 
     // Check that loading state is gone and response is shown
-    await expect(page.getByRole('button', { name: 'Send Request' })).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Send Request' })
+    ).toBeVisible();
     await expect(page.getByText('This is a test response')).toBeVisible();
   });
 

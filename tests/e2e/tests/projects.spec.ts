@@ -13,21 +13,31 @@ test.describe('Project management', () => {
 
     // Wait for app navigation via router.push('/projects') and/or first projects fetch
     await Promise.race([
-      page.waitForURL('**/projects*', { waitUntil: 'domcontentloaded', timeout: 20000 }),
+      page.waitForURL('**/projects*', {
+        waitUntil: 'domcontentloaded',
+        timeout: 20000,
+      }),
       page.waitForResponse(
-        (res) => res.request().method() === 'GET' && res.url().includes('/api/projects') && res.ok(),
+        (res) =>
+          res.request().method() === 'GET' &&
+          res.url().includes('/api/projects') &&
+          res.ok(),
         { timeout: 20000 }
       ),
     ]);
 
     // Projects heading should be visible now
-    await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible({ timeout: 20000 });
+    await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible({
+      timeout: 20000,
+    });
   });
 
   test('should display projects page after login', async ({ page }) => {
     await expect(page.locator('main h1')).toContainText('Projects');
     await expect(page.getByText('Manage your projects')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Create Project' })).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Create Project' })
+    ).toBeVisible();
   });
 
   test('should create a new project', async ({ page }) => {
@@ -52,11 +62,17 @@ test.describe('Project management', () => {
     // Check if project appears in the list (use stable data-testid selectors)
     const createdCard = page
       .locator('[data-testid="project-card"]')
-      .filter({ has: page.locator('[data-testid="project-name"]', { hasText: projectName }) })
+      .filter({
+        has: page.locator('[data-testid="project-name"]', {
+          hasText: projectName,
+        }),
+      })
       .first();
 
     await expect(createdCard).toBeVisible();
-    await expect(createdCard.locator('[data-testid="project-description"]')).toHaveText(projectDescription);
+    await expect(
+      createdCard.locator('[data-testid="project-description"]')
+    ).toHaveText(projectDescription);
   });
 
   test('should show validation error for empty project name', async ({
@@ -100,13 +116,20 @@ test.describe('Project management', () => {
     // Delete the project (confirmation removed in UI for test stability)
     const projectCardsByName = page
       .locator('[data-testid="project-card"]')
-      .filter({ has: page.locator('[data-testid="project-name"]', { hasText: projectName }) });
+      .filter({
+        has: page.locator('[data-testid="project-name"]', {
+          hasText: projectName,
+        }),
+      });
 
     // Ensure the card is present
     await expect(projectCardsByName).toHaveCount(1);
 
     // Click delete inside the specific card
-    await projectCardsByName.first().locator('[data-testid="delete-project"]').click();
+    await projectCardsByName
+      .first()
+      .locator('[data-testid="delete-project"]')
+      .click();
 
     // Wait for the UI to reflect deletion
     await expect(projectCardsByName).toHaveCount(0, { timeout: 20000 });

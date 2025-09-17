@@ -24,7 +24,8 @@ export interface Project {
 }
 
 // Simple ID generator
-const genId = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
+const genId = () =>
+  Math.random().toString(36).slice(2) + Date.now().toString(36);
 
 // Seed demo user and project
 const now = new Date();
@@ -56,8 +57,10 @@ class SimpleDB {
   user = {
     findUnique: async (args?: any): Promise<User | null> => {
       if (!args?.where) return null;
-      if (args.where.email) return users.find((u) => u.email === args.where.email) || null;
-      if (args.where.id) return users.find((u) => u.id === args.where.id) || null;
+      if (args.where.email)
+        return users.find((u) => u.email === args.where.email) || null;
+      if (args.where.id)
+        return users.find((u) => u.id === args.where.id) || null;
       return null;
     },
     create: async (args?: any): Promise<User> => {
@@ -101,7 +104,9 @@ class SimpleDB {
       const where = args?.where || {};
       return (
         projects.find(
-          (p) => (!where.id || p.id === where.id) && (!where.userId || p.userId === where.userId)
+          (p) =>
+            (!where.id || p.id === where.id) &&
+            (!where.userId || p.userId === where.userId)
         ) || null
       );
     },
@@ -123,15 +128,20 @@ class SimpleDB {
       const where = args?.where || {};
       let list = projects.slice();
       if (where.userId) list = list.filter((p) => p.userId === where.userId);
-      if (args?.orderBy?.createdAt === 'desc') list.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-      if (args?.orderBy?.createdAt === 'asc') list.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+      if (args?.orderBy?.createdAt === 'desc')
+        list.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      if (args?.orderBy?.createdAt === 'asc')
+        list.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
       return list;
     },
     updateMany: async (args?: any): Promise<{ count: number }> => {
       const { where, data } = args || {};
       let count = 0;
       projects = projects.map((p) => {
-        if (p.id === where?.id && (!where.userId || p.userId === where.userId)) {
+        if (
+          p.id === where?.id &&
+          (!where.userId || p.userId === where.userId)
+        ) {
           count += 1;
           return { ...p, ...data, updatedAt: new Date() } as Project;
         }
@@ -143,7 +153,8 @@ class SimpleDB {
       const { where } = args || {};
       const before = projects.length;
       projects = projects.filter(
-        (p) => !(p.id === where?.id && (!where.userId || p.userId === where.userId))
+        (p) =>
+          !(p.id === where?.id && (!where.userId || p.userId === where.userId))
       );
       return { count: before - projects.length };
     },

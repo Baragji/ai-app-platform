@@ -159,7 +159,9 @@ export default function LLMTestPage() {
               </label>
               <textarea
                 value={prompt}
-                onInput={(e) => setPrompt((e.target as HTMLTextAreaElement).value)}
+                onInput={(e) =>
+                  setPrompt((e.target as HTMLTextAreaElement).value)
+                }
                 rows={4}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter your prompt here..."
