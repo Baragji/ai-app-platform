@@ -24,23 +24,29 @@ npm run test              # Unit tests (needs DB)
 ## Recommended Workflow
 
 ### Before Every Commit:
+
 ```bash
 npm run precommit
 ```
+
 This will:
+
 1. Auto-fix Prettier formatting issues
 2. Run ESLint, format check, and TypeScript
 3. Catch 90% of CI failures instantly
 
 ### Before Every Push:
+
 ```bash
 npm run ci:local
 ```
+
 This runs the complete CI pipeline locally (minus database-dependent tests).
 
 ## Common Issues & Fixes
 
 ### ESLint Warnings
+
 ```bash
 # Fix auto-fixable issues
 npm run lint:fix
@@ -51,6 +57,7 @@ npm run lint:fix
 ```
 
 ### Prettier Formatting
+
 ```bash
 # Fix all formatting issues
 npm run format
@@ -60,6 +67,7 @@ npm run format:check
 ```
 
 ### TypeScript Errors
+
 ```bash
 # See all type errors
 npm run type-check
@@ -69,6 +77,7 @@ npx tsc --noEmit apps/web/src/path/to/file.ts
 ```
 
 ### Build Issues
+
 ```bash
 # Test the build locally
 npm run build
@@ -102,6 +111,7 @@ npm run e2e --workspace=tests/e2e
 ## Pro Tips
 
 1. **Set up pre-commit hooks** (optional):
+
    ```bash
    # Add to .git/hooks/pre-commit
    #!/bin/bash
@@ -123,6 +133,6 @@ npm run e2e --workspace=tests/e2e
    npm run format && npm run ci:quick
    ```
 
-## Never Wait for CI Again! 
+## Never Wait for CI Again!
 
 With these commands, you'll catch 99% of CI failures locally in seconds instead of waiting 5-10 minutes for GitHub Actions. Happy coding! 🎉
