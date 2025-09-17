@@ -1,0 +1,266 @@
+name: CI Diagnose
+
+on:
+  workflow_dispatch:
+    inputs:
+      debug_level:
+        description: 'Debug level for diagnostic information'
+        required: false
+        default: 'standard'
+        type: choice
+        options:
+          - minimal
+          - standard
+          - verbose
+      run_tests:
+        description: 'Run tests during diagnosis'
+        required: false
+        default: true
+        type: boolean
+      collect_artifacts:
+        description: 'Collect diagnostic artifacts'
+        required: false
+        default: true
+        type: boolean
+
+# Default permissions: read-all for security
+permissions: read-all
+
+env:
+  NODE_VERSION: 20
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ai_app_platform
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: System Information
+        run: |
+          echo "=== System Information ==="
+          echo "OS: $(uname -a)"
+          echo "Node version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+          echo "Git version: $(git --version)"
+          echo "Debug level: ${{ github.event.inputs.debug_level || 'standard' }}"
+          echo "Run tests: ${{ github.event.inputs.run_tests || 'true' }}"
+          echo "Collect artifacts: ${{ github.event.inputs.collect_artifacts || 'true' }}"
+
+      - name: Environment Variables
+        run: |
+          echo "=== Environment Variables ==="
+          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+          echo "GITHUB_REPOSITORY: $GITHUB_REPOSITORY"
+          echo "GITHUB_REF: $GITHUB_REF"
+          echo "GITHUB_SHA: $GITHUB_SHA"
+          echo "RUNNER_OS: $RUNNER_OS"
+          echo "RUNNER_ARCH: $RUNNER_ARCH"
+
+      - name: Install dependencies
+        run: npm ci --workspaces
+
+      - name: Build gateway package
+        run: npm run build --workspace=packages/gateway
+
+      - name: Generate Prisma client
+        run: npm run generate --workspace=packages/db
+
+      - name: Database connectivity test
+        run: |
+          echo "=== Database Connectivity ==="
+          npm run migrate:deploy --workspace=packages/db
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ai_app_platform
+
+      - name: Seed database
+        run: npm run seed --workspace=packages/db
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ai_app_platform
+
+      - name: Redis connectivity test
+        run: |
+          echo "=== Redis Connectivity ==="
+          echo "PING" | nc -q 1 localhost 6379 || echo "Redis connection failed"
+
+      - name: Build application
+        run: npm run build
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ai_app_platform
+          REDIS_URL: redis://localhost:6379
+          NEXTAUTH_SECRET: test-secret
+          NEXTAUTH_URL: http://localhost:3000
+          LITELLM_BASE_URL: http://localhost:4000
+          LITELLM_TIMEOUT: 30000
+
+      - name: Run linting
+        run: |
+          echo "=== Linting ==="
+          npm run lint
+
+      - name: Check formatting
+        run: |
+          echo "=== Format Check ==="
+          npm run format:check
+
+      - name: Type checking
+        run: |
+          echo "=== Type Check ==="
+          npm run type-check
+
+      - name: Run unit tests
+        if: github.event.inputs.run_tests == 'true' || github.event.inputs.run_tests == ''
+        run: |
+          echo "=== Unit Tests ==="
+          npm run test --workspace=tests/unit
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ai_app_platform
+          REDIS_URL: redis://localhost:6379
+          NEXTAUTH_SECRET: test-secret
+          NEXTAUTH_URL: http://localhost:3000
+          LITELLM_BASE_URL: http://localhost:4000
+          LITELLM_TIMEOUT: 5000
+
+      - name: Install Playwright browsers
+        if: github.event.inputs.run_tests == 'true' || github.event.inputs.run_tests == ''
+        run: npx playwright install --with-deps
+        working-directory: tests/e2e
+
+      - name: Run E2E tests
+        if: github.event.inputs.run_tests == 'true' || github.event.inputs.run_tests == ''
+        run: |
+          echo "=== E2E Tests ==="
+          npm run e2e --workspace=tests/e2e
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ai_app_platform
+          REDIS_URL: redis://localhost:6379
+          NEXTAUTH_SECRET: test-secret
+          NEXTAUTH_URL: http://localhost:3000
+          LITELLM_BASE_URL: http://localhost:4000
+          LITELLM_TIMEOUT: 5000
+
+      - name: Collect package information
+        if: github.event.inputs.collect_artifacts == 'true' || github.event.inputs.collect_artifacts == ''
+        run: |
+          echo "=== Package Information ==="
+          mkdir -p /tmp/diagnose-artifacts
+          npm list --depth=0 > /tmp/diagnose-artifacts/package-list.txt
+          npm outdated > /tmp/diagnose-artifacts/outdated-packages.txt || true
+          cp package.json /tmp/diagnose-artifacts/
+          cp package-lock.json /tmp/diagnose-artifacts/
+          if [ -f pnpm-lock.yaml ]; then cp pnpm-lock.yaml /tmp/diagnose-artifacts/; fi
+
+      - name: Collect build artifacts
+        if: github.event.inputs.collect_artifacts == 'true' || github.event.inputs.collect_artifacts == ''
+        run: |
+          echo "=== Build Artifacts ==="
+          # Collect build outputs
+          if [ -d "apps/web/.next" ]; then
+            tar -czf /tmp/diagnose-artifacts/next-build.tar.gz -C apps/web .next/
+          fi
+          if [ -d "packages/gateway/dist" ]; then
+            tar -czf /tmp/diagnose-artifacts/gateway-dist.tar.gz -C packages/gateway dist/
+          fi
+
+      - name: Collect logs and diagnostics
+        if: always() && (github.event.inputs.collect_artifacts == 'true' || github.event.inputs.collect_artifacts == '')
+        run: |
+          echo "=== Diagnostics Collection ==="
+          # Create comprehensive diagnostic report
+          cat > /tmp/diagnose-artifacts/diagnostic-report.md << EOF
+          # CI Diagnose Report
+          
+          **Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          **Branch:** $GITHUB_REF_NAME
+          **Commit:** $GITHUB_SHA
+          **Workflow Run:** $GITHUB_RUN_ID
+          **Debug Level:** ${{ github.event.inputs.debug_level || 'standard' }}
+          
+          ## System Information
+          - OS: $(uname -a)
+          - Node: $(node --version)
+          - NPM: $(npm --version)
+          - Git: $(git --version)
+          
+          ## Repository State
+          - Repository: $GITHUB_REPOSITORY
+          - Branch: $GITHUB_REF_NAME
+          - Commit: $GITHUB_SHA
+          
+          ## Job Status
+          - Job: ${{ job.status }}
+          - Step: Diagnostic Collection
+          
+          ## Configuration
+          - Run Tests: ${{ github.event.inputs.run_tests || 'true' }}
+          - Collect Artifacts: ${{ github.event.inputs.collect_artifacts || 'true' }}
+          
+          EOF
+
+      - name: Upload Playwright reports
+        uses: actions/upload-artifact@89ef406dd8d7e03cfd12d9e0a4a378f454709029 # v4.4.0
+        if: always() && (github.event.inputs.collect_artifacts == 'true' || github.event.inputs.collect_artifacts == '')
+        with:
+          name: playwright-report-diagnose
+          path: tests/e2e/playwright-report/
+          retention-days: 7
+
+      - name: Upload Playwright traces
+        uses: actions/upload-artifact@89ef406dd8d7e03cfd12d9e0a4a378f454709029 # v4.4.0
+        if: always() && (github.event.inputs.collect_artifacts == 'true' || github.event.inputs.collect_artifacts == '')
+        with:
+          name: playwright-traces-diagnose
+          path: tests/e2e/test-results/
+          retention-days: 7
+
+      - name: Upload diagnostic artifacts
+        uses: actions/upload-artifact@89ef406dd8d7e03cfd12d9e0a4a378f454709029 # v4.4.0
+        if: always() && (github.event.inputs.collect_artifacts == 'true' || github.event.inputs.collect_artifacts == '')
+        with:
+          name: diagnose-artifacts
+          path: /tmp/diagnose-artifacts/
+          retention-days: 30
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "=== CI Diagnose Summary ==="
+          echo "✅ Workflow completed"
+          echo "📊 Debug level: ${{ github.event.inputs.debug_level || 'standard' }}"
+          echo "🧪 Tests run: ${{ github.event.inputs.run_tests || 'true' }}"
+          echo "📦 Artifacts collected: ${{ github.event.inputs.collect_artifacts || 'true' }}"
+          echo "🔍 Check the 'diagnose-artifacts' for detailed diagnostics"
