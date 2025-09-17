@@ -82,10 +82,10 @@ jobs:
           path: packages/gateway/dist
           key: ${{ runner.os }}-gateway-dist-${{ hashFiles('packages/gateway/src/**/*', 'packages/gateway/package.json', 'packages/gateway/tsconfig.json') }}
 
-      - name: Install dependencies (if cache miss)
+      - name: Install dependencies
         run: npm ci --workspaces
 
-      - name: Build gateway (if cache miss)
+      - name: Build gateway
         run: npm run build --workspace=packages/gateway
 
       - name: Run ESLint
@@ -129,10 +129,10 @@ jobs:
           path: packages/gateway/dist
           key: ${{ runner.os }}-gateway-dist-${{ hashFiles('packages/gateway/src/**/*', 'packages/gateway/package.json', 'packages/gateway/tsconfig.json') }}
 
-      - name: Install dependencies (if cache miss)
+      - name: Install dependencies
         run: npm ci --workspaces
 
-      - name: Build gateway (if cache miss)
+      - name: Build gateway
         run: npm run build --workspace=packages/gateway
 
       - name: Generate Prisma client
@@ -205,10 +205,10 @@ jobs:
           path: packages/gateway/dist
           key: ${{ runner.os }}-gateway-dist-${{ hashFiles('packages/gateway/src/**/*', 'packages/gateway/package.json', 'packages/gateway/tsconfig.json') }}
 
-      - name: Install dependencies (if cache miss)
+      - name: Install dependencies
         run: npm ci --workspaces
 
-      - name: Build gateway (if cache miss)
+      - name: Build gateway
         run: npm run build --workspace=packages/gateway
 
       - name: Generate Prisma client
@@ -282,10 +282,10 @@ jobs:
           path: packages/gateway/dist
           key: ${{ runner.os }}-gateway-dist-${{ hashFiles('packages/gateway/src/**/*', 'packages/gateway/package.json', 'packages/gateway/tsconfig.json') }}
 
-      - name: Install dependencies (if cache miss)
+      - name: Install dependencies
         run: npm ci --workspaces
 
-      - name: Build gateway (if cache miss)
+      - name: Build gateway
         run: npm run build --workspace=packages/gateway
 
       - name: Generate Prisma client
