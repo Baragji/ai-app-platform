@@ -52,13 +52,13 @@ jobs:
         run: npm ci --include-workspace-root --workspaces
 
       - name: Generate Prisma Client
-        run: npm run generate --workspace=packages/db
+        run: npm run generate --workspace=apps/web
 
       - name: Apply DB migrations
-        run: npm run migrate:deploy --workspace=packages/db
+        run: npm run migrate:deploy --workspace=apps/web
 
       - name: Seed DB
-        run: npm run seed --workspace=packages/db
+        run: npm run seed --workspace=apps/web
 
       - name: Build gateway package first
         run: npm run build --workspace=packages/gateway
