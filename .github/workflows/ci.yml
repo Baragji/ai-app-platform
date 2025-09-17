@@ -49,32 +49,49 @@ jobs:
           cache: npm
 
       - name: Install deps
-        run: npm ci
+        run: npm ci --include-workspace-root --workspaces
 
       - name: Generate Prisma Client
-        run: npm run generate --workspace=apps/web || npm run generate
+        run: npm run generate --workspace=packages/db
 
       - name: Apply DB migrations
-        run: npm run migrate:deploy --workspace=apps/web || npm run migrate:deploy
+        run: npm run migrate:deploy --workspace=packages/db
 
       - name: Seed DB
-        run: npm run seed --workspace=apps/web || npm run seed
+        run: npm run seed --workspace=packages/db
 
-      - name: Build (gateway first if present)
-        run: |
-          npm run build --workspace=packages/gateway || true
-          npm run build
+      - name: Build gateway package first
+        run: npm run build --workspace=packages/gateway
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Check Prettier formatting
+        run: npm run format:check
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Build application
+        run: npm run build --workspace=apps/web
+        env:
+          # LiteLLM configuration for build
+          LITELLM_BASE_URL: http://localhost:4000
+          LITELLM_TIMEOUT: 30000
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
         working-directory: tests/e2e
 
       - name: Unit tests
-        run: npm run test --workspaces --if-present || npm run test --if-present
+        run: npm run test --workspace=tests/unit
 
       - name: E2E tests (Playwright)
         env:
           BASE_URL: http://localhost:3000
+          # LiteLLM test configuration - will use mock gateway automatically
+          LITELLM_BASE_URL: http://localhost:4000
+          LITELLM_TIMEOUT: 5000
         run: npm run e2e --workspace=tests/e2e
 
       - name: Generate SBOM (CycloneDX)
