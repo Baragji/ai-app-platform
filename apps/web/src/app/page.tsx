@@ -14,12 +14,14 @@ export default function HomePage() {
         <div className="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
           <Link
             href="/projects"
+            prefetch={false}
             className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
           >
             View Projects
           </Link>
           <Link
             href="/auth/signin"
+            prefetch={false}
             className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
           >
             Sign In

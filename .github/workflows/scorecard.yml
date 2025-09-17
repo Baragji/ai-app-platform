@@ -4,11 +4,11 @@ on:
   # Run on PRs to main/develop
   pull_request:
     branches: [main, develop]
-  
+
   # Run nightly on main branch
   schedule:
-    - cron: '0 2 * * *'  # 2 AM UTC daily
-  
+    - cron: '0 2 * * *' # 2 AM UTC daily
+
   # Allow manual triggers
   workflow_dispatch:
 
@@ -61,12 +61,12 @@ jobs:
           # Extract overall score from SARIF results
           SCORE=$(jq -r '.runs[0].properties.score // "N/A"' results.sarif)
           echo "score=$SCORE" >> $GITHUB_OUTPUT
-          
+
           # Count issues by severity
           CRITICAL=$(jq '[.runs[0].results[] | select(.level == "error")] | length' results.sarif)
           HIGH=$(jq '[.runs[0].results[] | select(.level == "warning")] | length' results.sarif)
           MEDIUM=$(jq '[.runs[0].results[] | select(.level == "note")] | length' results.sarif)
-          
+
           echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
           echo "high=$HIGH" >> $GITHUB_OUTPUT
           echo "medium=$MEDIUM" >> $GITHUB_OUTPUT
@@ -75,22 +75,22 @@ jobs:
         run: |
           cat >> $GITHUB_STEP_SUMMARY << 'EOF'
           ## 🛡️ OpenSSF Scorecard Results
-          
+
           **Overall Score:** ${{ steps.parse.outputs.score }}/10
-          
+
           **Issues Found:**
           - 🔴 Critical: ${{ steps.parse.outputs.critical }}
           - 🟡 High: ${{ steps.parse.outputs.high }}
           - 🔵 Medium: ${{ steps.parse.outputs.medium }}
-          
+
           **Detailed Results:**
           - View full results in the [Security tab](../security/code-scanning)
           - Download detailed report from [workflow artifacts](../actions/runs/${{ github.run_id }})
-          
+
           **About OpenSSF Scorecard:**
           The OpenSSF Scorecard evaluates open source projects for supply chain security risks.
           It provides a score from 0-10 based on various security practices and policies.
-          
+
           [Learn more about OpenSSF Scorecard](https://github.com/ossf/scorecard)
           EOF
 
@@ -103,22 +103,22 @@ jobs:
             const critical = '${{ steps.parse.outputs.critical }}';
             const high = '${{ steps.parse.outputs.high }}';
             const medium = '${{ steps.parse.outputs.medium }}';
-            
+
             const comment = `## 🛡️ OpenSSF Scorecard Analysis
-            
+
             **Overall Score:** ${score}/10
-            
+
             **Issues Found:**
             - 🔴 Critical: ${critical}
             - 🟡 High: ${high}  
             - 🔵 Medium: ${medium}
-            
+
             **View Details:**
             - [Security Dashboard](${context.payload.repository.html_url}/security/code-scanning)
             - [Workflow Results](${context.payload.repository.html_url}/actions/runs/${context.runId})
-            
+
             *This analysis helps ensure our supply chain security practices meet industry standards.*`;
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,

@@ -338,7 +338,7 @@ jobs:
     permissions:
       contents: read
       actions: read
-      id-token: write  # Required for cosign keyless signing
+      id-token: write # Required for cosign keyless signing
     outputs:
       image-digest: ${{ steps.build.outputs.digest }}
       image-name: ai-app-platform

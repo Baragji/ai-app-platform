@@ -30,9 +30,9 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'npm run dev --workspace=apps/web',
+    command: 'cd ../../ && npm run dev --workspace=apps/web',
     url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 120 * 1000,
   },
 });

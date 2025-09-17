@@ -4,8 +4,8 @@ test.describe('LLM Test page', () => {
   test('should display LLM test interface', async ({ page }) => {
     await page.goto('/llm-test');
 
-    // Check main heading
-    await expect(page.locator('h1')).toContainText('LiteLLM Model Test');
+    // Check main heading (in main content, not nav)
+    await expect(page.locator('main h1')).toContainText('LiteLLM Model Test');
 
     // Check form elements are present
     await expect(page.locator('select')).toBeVisible(); // Model selector
@@ -27,6 +27,7 @@ test.describe('LLM Test page', () => {
 
     // Fill in prompt
     await page.fill('textarea', 'Hello, this is a test prompt');
+    await expect(page.locator('textarea')).toHaveValue('Hello, this is a test prompt');
 
     // Should now be enabled
     await expect(page.locator('button[type="submit"]')).toBeEnabled();
@@ -121,19 +122,24 @@ test.describe('LLM Test page', () => {
 
     // Fill form and submit
     await page.fill('textarea', 'Test prompt');
+    await expect(page.locator('textarea')).toHaveValue('Test prompt');
+
+    // Ensure button is enabled before clicking (stabilizes across browsers)
+    const submitButton = page.locator('button[type="submit"]');
+    await expect(submitButton).toBeEnabled();
 
     // Click submit and immediately check for loading state
-    const submitPromise = page.click('button[type="submit"]');
+    const submitPromise = submitButton.click();
 
     // Check loading state appears
-    await expect(page.locator('button:has-text("Sending...")')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Sending...' })).toBeVisible();
 
     // Wait for submit to complete
     await submitPromise;
 
     // Check that loading state is gone and response is shown
-    await expect(page.locator('button:has-text("Send Request")')).toBeVisible();
-    await expect(page.locator('text=This is a test response')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Send Request' })).toBeVisible();
+    await expect(page.getByText('This is a test response')).toBeVisible();
   });
 
   test('should display error message on API failure', async ({ page }) => {
@@ -153,11 +159,14 @@ test.describe('LLM Test page', () => {
 
     // Fill form and submit
     await page.fill('textarea', 'Test prompt');
-    await page.click('button[type="submit"]');
+    await expect(page.locator('textarea')).toHaveValue('Test prompt');
+    const submitButton3 = page.locator('button[type="submit"]');
+    await expect(submitButton3).toBeEnabled();
+    await submitButton3.click();
 
     // Check error message appears
-    await expect(page.locator('text=Error')).toBeVisible();
-    await expect(page.locator('text=Test error message')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Error' })).toBeVisible();
+    await expect(page.getByText('Test error message')).toBeVisible();
   });
 
   test('should display success response with metrics', async ({ page }) => {
@@ -197,11 +206,13 @@ test.describe('LLM Test page', () => {
 
     // Fill form and submit
     await page.fill('textarea', 'Hello, test!');
-    await page.click('button[type="submit"]');
+    const submitButton2 = page.locator('button[type="submit"]');
+    await expect(submitButton2).toBeEnabled();
+    await submitButton2.click();
 
     // Wait for response
     await expect(
-      page.locator('text=Hello! This is a test response.')
+      page.getByText('Hello! This is a test response.')
     ).toBeVisible();
 
     // Check metrics are displayed

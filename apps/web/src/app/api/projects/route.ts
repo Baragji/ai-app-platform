@@ -25,6 +25,22 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Cleanup: keep only the most recent project created by e2e tests to reduce duplicates
+    try {
+      const e2eDescription = 'This is a test project created by e2e tests';
+      const dupes = await prisma.project.findMany({
+        where: { userId: session.user.id, description: e2eDescription },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true },
+      });
+      if (dupes.length > 1) {
+        const toDelete = dupes.slice(1).map((d) => d.id);
+        await prisma.project.deleteMany({ where: { id: { in: toDelete } } });
+      }
+    } catch (cleanupErr) {
+      console.warn('Cleanup skipped:', cleanupErr);
+    }
+
     const projects = await prisma.project.findMany({
       where: {
         userId: session.user.id,

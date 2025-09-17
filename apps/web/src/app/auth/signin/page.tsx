@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn, getSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -18,20 +18,21 @@ export default function SignInPage() {
     setIsLoading(true);
 
     try {
+      // Perform credentials sign-in without auto-redirect; navigate on success
       const result = await signIn('credentials', {
         email,
         password,
         redirect: false,
+        callbackUrl: '/projects',
       });
 
-      if (result?.error) {
+      if ((result as any)?.error) {
         setError('Invalid credentials');
-      } else {
-        const session = await getSession();
-        if (session) {
-          router.push('/projects');
-        }
+        return;
       }
+
+      // Navigate deterministically after session cookie is set
+      router.push('/projects');
     } catch (error) {
       setError('An error occurred. Please try again.');
     } finally {
