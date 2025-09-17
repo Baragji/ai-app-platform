@@ -5,6 +5,9 @@ import { prisma } from '@/lib/db';
 import { authOptions } from '@/lib/auth';
 import { addSampleJob } from '@/lib/jobs';
 
+// Ensure Node.js runtime for stable Prisma + session handling
+export const runtime = 'nodejs';
+
 const createProjectSchema = z.object({
   name: z
     .string()

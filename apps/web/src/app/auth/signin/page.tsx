@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { signIn, getSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -18,20 +18,26 @@ export default function SignInPage() {
     setIsLoading(true);
 
     try {
-      // Perform credentials sign-in without auto-redirect; navigate on success
       const result = await signIn('credentials', {
         email,
         password,
         redirect: false,
-        callbackUrl: '/projects',
       });
 
-      if ((result as any)?.error) {
+      if (!result || (result as any)?.error === 'CredentialsSignin' || (result as any)?.error) {
         setError('Invalid credentials');
         return;
       }
 
-      // Navigate deterministically after session cookie is set
+      // Wait until session cookie is fully established to avoid a race with auth middleware
+      let attempts = 0;
+      while (attempts < 40) {
+        const session = await getSession();
+        if (session && session.user) break;
+        await new Promise((r) => setTimeout(r, 200));
+        attempts += 1;
+      }
+
       router.push('/projects');
     } catch (error) {
       setError('An error occurred. Please try again.');
@@ -60,7 +66,7 @@ export default function SignInPage() {
             </label>
             <input
               id="email"
-              type="email"
+              type="email" autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -78,7 +84,7 @@ export default function SignInPage() {
             </label>
             <input
               id="password"
-              type="password"
+              type="password" autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required

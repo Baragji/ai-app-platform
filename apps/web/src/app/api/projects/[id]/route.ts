@@ -4,6 +4,9 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { authOptions } from '@/lib/auth';
 
+// Ensure Node.js runtime for stable Prisma + session handling
+export const runtime = 'nodejs';
+
 const updateProjectSchema = z.object({
   name: z
     .string()

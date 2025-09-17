@@ -16,7 +16,7 @@ interface Project {
 export default function ProjectsClient() {
   const { status } = useSession();
   const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newProject, setNewProject] = useState({ name: '', description: '' });
@@ -27,9 +27,28 @@ export default function ProjectsClient() {
     }
   }, [status]);
 
+  // Simple fetch with retries to reduce flakiness after mutations
+  const fetchWithRetry = async (url: string, init?: RequestInit, retries = 3, backoffMs = 300): Promise<Response> => {
+    let lastError: unknown = null;
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        const res = await fetch(url, { credentials: 'include', ...init }); // include cookies
+        if (res.ok) return res;
+      } catch (err) {
+        lastError = err;
+      }
+      if (attempt < retries - 1) {
+        await new Promise((r) => setTimeout(r, backoffMs * (attempt + 1)));
+      }
+    }
+    // Final attempt
+    return fetch(url, { credentials: 'include', ...init });
+  };
+
   const fetchProjects = async () => {
+    setIsLoading(true);
     try {
-      const response = await fetch('/api/projects');
+      const response = await fetchWithRetry('/api/projects');
       if (response.ok) {
         const data = await response.json();
         setProjects(data.projects);
@@ -52,13 +71,16 @@ export default function ProjectsClient() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(newProject),
       });
 
       if (response.ok) {
-        await fetchProjects();
-        setNewProject({ name: '', description: '' });
+        // Close form immediately on success for better UX and test stability
         setShowCreateForm(false);
+        setNewProject({ name: '', description: '' });
+        // Refresh in background with retry
+        await fetchProjects();
       } else {
         const data = await response.json();
         setError(data.error || 'Failed to create project');
@@ -72,6 +94,7 @@ export default function ProjectsClient() {
     try {
       const response = await fetch(`/api/projects/${id}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
 
       if (response.ok) {
@@ -84,14 +107,7 @@ export default function ProjectsClient() {
     }
   };
 
-  if (status === 'loading' || isLoading) {
-    return (
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center">Loading...</div>
-      </main>
-    );
-  }
-
+  
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <section className="mb-8">
@@ -216,7 +232,7 @@ export default function ProjectsClient() {
 
       {projects.length === 0 && !isLoading && (
         <div className="text-center py-12">
-          <h3 className="text-lg font-medium text-gray-900">No projects yet</h3>
+          <p className="text-lg font-medium text-gray-900">No projects yet</p>
           <p className="mt-2 text-sm text-gray-500">Create your first project to get started</p>
         </div>
       )}

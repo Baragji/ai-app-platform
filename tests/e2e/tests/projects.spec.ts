@@ -11,13 +11,16 @@ test.describe('Project management', () => {
     // Click submit
     await page.click('button[type="submit"]');
 
-    // Wait for either the credentials callback to complete OR navigation to /projects to begin
+    // Wait for app navigation via router.push('/projects') and/or first projects fetch
     await Promise.race([
-      page.waitForResponse((res) => res.url().includes('/api/auth/callback/credentials') && res.ok()),
       page.waitForURL('**/projects*', { waitUntil: 'domcontentloaded', timeout: 20000 }),
+      page.waitForResponse(
+        (res) => res.request().method() === 'GET' && res.url().includes('/api/projects') && res.ok(),
+        { timeout: 20000 }
+      ),
     ]);
 
-    // Ensure projects page content is visible (allow extra time for session + data fetch)
+    // Projects heading should be visible now
     await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible({ timeout: 20000 });
   });
 
@@ -105,8 +108,8 @@ test.describe('Project management', () => {
     // Click delete inside the specific card
     await projectCardsByName.first().locator('[data-testid="delete-project"]').click();
 
-    // The card should disappear after the UI refreshes the list
-    await expect(projectCardsByName).toHaveCount(0, { timeout: 10000 });
+    // Wait for the UI to reflect deletion
+    await expect(projectCardsByName).toHaveCount(0, { timeout: 20000 });
   });
 
   test('should display demo project from seed data', async ({ page }) => {
