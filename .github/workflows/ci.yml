@@ -52,13 +52,13 @@ jobs:
         run: npm ci
 
       - name: Generate Prisma Client
-        run: npm run generate --workspace=packages/db || npm run generate || true
+        run: npm run generate --workspace=apps/web || npm run generate
 
       - name: Apply DB migrations
-        run: npm run migrate:deploy --workspace=packages/db || npm run migrate:deploy
+        run: npm run migrate:deploy --workspace=apps/web || npm run migrate:deploy
 
       - name: Seed DB
-        run: npm run seed --workspace=packages/db || npm run seed || true
+        run: npm run seed --workspace=apps/web || npm run seed
 
       - name: Build (gateway first if present)
         run: |
@@ -67,6 +67,7 @@ jobs:
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
+        working-directory: tests/e2e
 
       - name: Unit tests
         run: npm run test --workspaces --if-present || npm run test --if-present
@@ -74,7 +75,7 @@ jobs:
       - name: E2E tests (Playwright)
         env:
           BASE_URL: http://localhost:3000
-        run: npx playwright test
+        run: npm run e2e --workspace=tests/e2e
 
       - name: Generate SBOM (CycloneDX)
         if: always()
@@ -86,8 +87,8 @@ jobs:
         with:
           name: test-artifacts
           path: |
-            playwright-report/
-            test-results/
+            tests/e2e/playwright-report/
+            tests/e2e/test-results/
             sbom.json
             **/junit*.xml
             **/logs/**
