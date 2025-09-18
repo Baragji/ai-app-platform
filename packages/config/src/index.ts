@@ -22,6 +22,16 @@ const envSchema = z.object({
   EMAIL_SERVER_USER: z.string().optional(),
   EMAIL_SERVER_PASSWORD: z.string().optional(),
   EMAIL_FROM: z.string().email().optional(),
+
+  // Observability
+  OTEL_SERVICE_NAME: z.string().default('ai-app-platform'),
+  OTEL_ENABLED: z.string().default('true'),
+  OTEL_EXPORTER_TYPE: z.enum(['otlp', 'console']).default('console'),
+  OTEL_EXPORTER_OTLP_ENDPOINT: z.string().optional(),
+  METRICS_ENABLED: z.string().default('true'),
+  METRICS_PORT: z.string().default('9464'),
+  LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
+  LOG_FORMAT: z.enum(['json', 'pretty']).default('json'),
 });
 
 export type Environment = z.infer<typeof envSchema>;

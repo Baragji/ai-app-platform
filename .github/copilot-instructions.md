@@ -1,4 +1,5 @@
 # Repo Copilot Instructions
+
 Work PR-native with small, test-first changes (TDD).
 Use contract-first APIs (OpenAPI), Conventional Commits, and atomic PRs.
 Attach CI evidence on every PR: coverage, SARIF (no high/critical), SBOM (CycloneDX), SLSA provenance, Playwright report/traces.
