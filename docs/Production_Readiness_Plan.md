@@ -118,9 +118,9 @@ Finding:
 
 Actions:
 
-- [ ] Search for imports of `@/src/lib/db` or `@/lib/db`
-- [ ] If unused, delete the file
-- [ ] If used, replace references with the real Prisma client import and adjust code accordingly
+- [x] Search for imports of `@/src/lib/db` or `@/lib/db`
+- [x] If unused, delete the file
+- [x] If used, replace references with the real Prisma client import and adjust code accordingly
 
 Acceptance:
 
