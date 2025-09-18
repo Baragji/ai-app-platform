@@ -101,16 +101,16 @@ jobs:
           npx @cyclonedx/cyclonedx-npm \
             --output-file sbom.json \
             --spec-version 1.6 \
-            --include-dev \
-            --include-optional \
+            
+            
             --output-reproducible || true
 
           # Generate SPDX format SBOM for compatibility
           npx @cyclonedx/cyclonedx-npm \
             --output-file sbom.spdx.json \
-            --output-format spdx-json \
+            --output-format JSON \
             --spec-version 1.6 \
-            --include-dev \
+            
             --include-optional || true
 
       - name: Generate Build Provenance Data

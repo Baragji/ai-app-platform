@@ -96,8 +96,8 @@ jobs:
           npx @cyclonedx/cyclonedx-npm \
             --output-file sbom-provenance.json \
             --spec-version 1.6 \
-            --include-dev \
-            --include-optional \
+            
+            
             --output-reproducible
 
       - name: Generate artifact hashes
