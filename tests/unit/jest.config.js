@@ -9,6 +9,7 @@ module.exports = {
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/../../apps/web/src/$1',
+    '^@ai-app-platform/db$': '<rootDir>/../../packages/db/src/index.ts',
   },
   setupFilesAfterEnv: ['<rootDir>/setup.ts'],
   collectCoverageFrom: [

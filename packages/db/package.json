@@ -7,17 +7,7 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
-    "type-check": "tsc --noEmit",
-    "migrate": "prisma migrate dev",
-    "migrate:deploy": "prisma migrate deploy",
-    "migrate:reset": "prisma migrate reset --force --skip-generate",
-    "seed": "prisma db seed",
-    "studio": "prisma studio",
-    "generate": "prisma generate",
-    "db:push": "prisma db push"
-  },
-  "prisma": {
-    "seed": "tsx src/seed.ts"
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@prisma/client": "^5.7.0",

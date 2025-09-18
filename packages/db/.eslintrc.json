@@ -1,5 +1,13 @@
 {
-  "extends": ["next/core-web-vitals"],
+  "extends": ["eslint:recommended"],
+  "env": {
+    "node": true,
+    "es6": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module"
+  },
   "rules": {
     "no-restricted-imports": [
       "error",
@@ -7,7 +15,7 @@
         "paths": [
           {
             "name": "@prisma/client",
-            "message": "Import prisma from '@ai-app-platform/db' only to ensure a single client instance."
+            "message": "Export and import prisma only via this package (src/index.ts)."
           },
           {
             "name": "prisma",
