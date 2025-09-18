@@ -1,0 +1,1 @@
+# P1 - Test Stabilization\n\n**Description:**\nEliminate flaky tests and ensure reliable CI/CD pipeline.\n\n**Files:**\n- tests/e2e/tests/projects.spec.ts\n- apps/web/src/app/projects/ProjectsClient.tsx\n\n**Definition of Done:**\n- Zero flaky tests in CI\n- All existing tests pass consistently\n- Test coverage maintained above 80%\n
