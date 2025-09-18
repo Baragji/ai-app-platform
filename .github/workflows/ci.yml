@@ -94,11 +94,88 @@ jobs:
           LITELLM_TIMEOUT: 5000
         run: npm run e2e --workspace=tests/e2e
 
-      - name: Generate SBOM (CycloneDX)
+      - name: Generate Enhanced SBOM (CycloneDX 1.6)
         if: always()
-        run: npx @cyclonedx/cyclonedx-npm --output-file sbom.json || true
+        run: |
+          # Generate comprehensive SBOM with CycloneDX 1.6 specification
+          npx @cyclonedx/cyclonedx-npm \
+            --output-file sbom.json \
+            --spec-version 1.6 \
+            --include-dev \
+            --include-optional \
+            --output-reproducible || true
+          
+          # Generate SPDX format SBOM for compatibility
+          npx @cyclonedx/cyclonedx-npm \
+            --output-file sbom.spdx.json \
+            --output-format spdx-json \
+            --spec-version 1.6 \
+            --include-dev \
+            --include-optional || true
 
-      - name: Upload artifacts (reports, traces, logs, sbom)
+      - name: Generate Build Provenance Data
+        if: always()
+        run: |
+          # Create build information for provenance
+          echo "Creating build provenance data..."
+          cat > build-info.json << EOF
+          {
+            "buildTimestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "gitCommit": "${{ github.sha }}",
+            "gitRef": "${{ github.ref }}",
+            "repository": "${{ github.repository }}",
+            "runId": "${{ github.run_id }}",
+            "runNumber": "${{ github.run_number }}",
+            "nodeVersion": "$(node --version)",
+            "npmVersion": "$(npm --version)",
+            "runner": {
+              "os": "${{ runner.os }}",
+              "arch": "${{ runner.arch }}",
+              "name": "${{ runner.name }}"
+            }
+          }
+          EOF
+
+      - name: Create Security Evidence Bundle
+        if: always()
+        run: |
+          # Create a comprehensive security evidence bundle
+          mkdir -p security-evidence
+          
+          # Copy SBOMs
+          cp sbom.json security-evidence/ 2>/dev/null || echo "CycloneDX SBOM not found"
+          cp sbom.spdx.json security-evidence/ 2>/dev/null || echo "SPDX SBOM not found"
+          
+          # Copy build info
+          cp build-info.json security-evidence/ 2>/dev/null || echo "Build info not found"
+          
+          # Create evidence manifest
+          cat > security-evidence/manifest.json << EOF
+          {
+            "evidenceType": "security-bundle",
+            "generatedAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "buildId": "${{ github.run_id }}",
+            "commitSha": "${{ github.sha }}",
+            "contents": {
+              "sbom": {
+                "cycloneDx": "sbom.json",
+                "spdx": "sbom.spdx.json"
+              },
+              "buildInfo": "build-info.json",
+              "compliance": {
+                "asvs": "planned",
+                "slsa": "in-progress",
+                "aiAct": "planned"
+              }
+            }
+          }
+          EOF
+          
+          # List all evidence files
+          echo "Security Evidence Bundle Contents:"
+          ls -la security-evidence/
+
+      - name: Upload artifacts (reports, traces, logs, sbom, evidence)
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -107,5 +184,8 @@ jobs:
             tests/e2e/playwright-report/
             tests/e2e/test-results/
             sbom.json
+            sbom.spdx.json
+            build-info.json
+            security-evidence/
             **/junit*.xml
             **/logs/**
