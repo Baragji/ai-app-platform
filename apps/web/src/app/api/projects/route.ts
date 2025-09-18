@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { z } from 'zod';
-import { prisma } from '@/lib/db';
+import { prisma } from '@ai-app-platform/db';
 import { authOptions } from '@/lib/auth';
 import { addSampleJob } from '@/lib/jobs';
 

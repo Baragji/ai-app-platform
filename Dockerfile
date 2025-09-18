@@ -23,8 +23,8 @@ COPY . .
 # Build gateway package first (required by other packages)
 RUN npm run build --workspace=packages/gateway
 
-# Generate Prisma client
-RUN npm run generate --workspace=packages/db
+# Generate Prisma client (apps/web is the single source of truth)
+RUN npm run generate --workspace=apps/web
 
 # Build the application
 RUN npm run build
