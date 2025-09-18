@@ -1,91 +1,66 @@
 name: CI
-
 on:
-  push:
-    branches: [main, develop]
   pull_request:
-    branches: [main, develop]
-
-# Default permissions: read-all for security
-permissions: read-all
-
-env:
-  NODE_VERSION: 20
+  push:
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
-  install:
+  build-test:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      actions: read
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: app
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd="redis-cli ping || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/app
+      REDIS_URL: redis://localhost:6379
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: testsecret
+      NODE_ENV: test
+      CI: true
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          node-version: 20
+          cache: npm
 
-      - name: Install dependencies
+      - name: Install deps
         run: npm ci --include-workspace-root --workspaces
+
+      - name: Generate Prisma Client
+        run: npm run generate --workspace=apps/web
+
+      - name: Apply DB migrations
+        run: npm run migrate:deploy --workspace=apps/web
+
+      - name: Seed DB
+        run: npm run seed --workspace=apps/web
 
       - name: Build gateway package first
-        run: npm run build --workspace=packages/gateway
-
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            apps/*/node_modules
-            packages/*/node_modules
-            tests/*/node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
-
-      - name: Cache gateway build
-        uses: actions/cache@v4
-        with:
-          path: packages/gateway/dist
-          key: ${{ runner.os }}-gateway-dist-${{ hashFiles('packages/gateway/src/**/*', 'packages/gateway/package.json', 'packages/gateway/tsconfig.json') }}
-
-  lint:
-    runs-on: ubuntu-latest
-    needs: install
-    permissions:
-      contents: read
-      actions: read
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-
-      - name: Setup Node.js
-        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Restore node_modules cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            apps/*/node_modules
-            packages/*/node_modules
-            tests/*/node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
-
-      - name: Restore gateway build cache
-        uses: actions/cache@v4
-        with:
-          path: packages/gateway/dist
-          key: ${{ runner.os }}-gateway-dist-${{ hashFiles('packages/gateway/src/**/*', 'packages/gateway/package.json', 'packages/gateway/tsconfig.json') }}
-
-      - name: Install dependencies
-        run: npm ci --include-workspace-root --workspaces
-
-      - name: Build gateway
         run: npm run build --workspace=packages/gateway
 
       - name: Run ESLint
@@ -97,369 +72,40 @@ jobs:
       - name: Type check
         run: npm run type-check
 
-  build:
-    runs-on: ubuntu-latest
-    needs: lint
-    permissions:
-      contents: read
-      actions: read
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-
-      - name: Setup Node.js
-        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Restore node_modules cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            apps/*/node_modules
-            packages/*/node_modules
-            tests/*/node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
-
-      - name: Restore gateway build cache
-        uses: actions/cache@v4
-        with:
-          path: packages/gateway/dist
-          key: ${{ runner.os }}-gateway-dist-${{ hashFiles('packages/gateway/src/**/*', 'packages/gateway/package.json', 'packages/gateway/tsconfig.json') }}
-
-      - name: Install dependencies
-        run: npm ci --include-workspace-root --workspaces
-
-      - name: Build gateway
-        run: npm run build --workspace=packages/gateway
-
-      - name: Generate Prisma client
-        run: npm run generate --workspace=packages/db
-
       - name: Build application
-        run: npm run build
+        run: npm run build --workspace=apps/web
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-          REDIS_URL: redis://localhost:6379
-          NEXTAUTH_SECRET: test-secret
-          NEXTAUTH_URL: http://localhost:3000
           # LiteLLM configuration for build
           LITELLM_BASE_URL: http://localhost:4000
           LITELLM_TIMEOUT: 30000
 
-  test:
-    runs-on: ubuntu-latest
-    needs: build
-    permissions:
-      contents: read
-      actions: read
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-      redis:
-        image: redis:7
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 6379:6379
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-
-      - name: Setup Node.js
-        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Restore node_modules cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            apps/*/node_modules
-            packages/*/node_modules
-            tests/*/node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
-
-      - name: Restore gateway build cache
-        uses: actions/cache@v4
-        with:
-          path: packages/gateway/dist
-          key: ${{ runner.os }}-gateway-dist-${{ hashFiles('packages/gateway/src/**/*', 'packages/gateway/package.json', 'packages/gateway/tsconfig.json') }}
-
-      - name: Install dependencies
-        run: npm ci --include-workspace-root --workspaces
-
-      - name: Build gateway
-        run: npm run build --workspace=packages/gateway
-
-      - name: Generate Prisma client
-        run: npm run generate --workspace=packages/db
-
-      - name: Run unit tests
-        run: npm run test --workspace=tests/unit
-        env:
-          NODE_ENV: test
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-          REDIS_URL: redis://localhost:6379
-          NEXTAUTH_SECRET: test-secret
-          NEXTAUTH_URL: http://localhost:3000
-          # LiteLLM test configuration - will use mock gateway automatically
-          LITELLM_BASE_URL: http://localhost:4000
-          LITELLM_TIMEOUT: 5000
-
-  e2e:
-    runs-on: ubuntu-latest
-    needs: test
-    permissions:
-      contents: read
-      actions: read
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: ai_app_platform
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-      redis:
-        image: redis:7
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 6379:6379
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-
-      - name: Setup Node.js
-        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4.0.3
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Restore node_modules cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            apps/*/node_modules
-            packages/*/node_modules
-            tests/*/node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
-
-      - name: Restore gateway build cache
-        uses: actions/cache@v4
-        with:
-          path: packages/gateway/dist
-          key: ${{ runner.os }}-gateway-dist-${{ hashFiles('packages/gateway/src/**/*', 'packages/gateway/package.json', 'packages/gateway/tsconfig.json') }}
-
-      - name: Install dependencies
-        run: npm ci --include-workspace-root --workspaces
-
-      - name: Build gateway
-        run: npm run build --workspace=packages/gateway
-
-      - name: Generate Prisma client
-        run: npm run generate --workspace=packages/db
-
-      - name: Install Playwright browsers with deps
+      - name: Install Playwright browsers
         run: npx playwright install --with-deps
         working-directory: tests/e2e
 
-      - name: Run database migrations
-        run: npm run migrate:deploy --workspace=packages/db
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ai_app_platform
+      - name: Unit tests
+        run: npm run test --workspace=tests/unit
 
-      - name: Seed database
-        run: npm run seed --workspace=packages/db
+      - name: E2E tests (Playwright)
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ai_app_platform
-
-      - name: Run Playwright tests
-        run: npm run e2e --workspace=tests/e2e
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ai_app_platform
-          REDIS_URL: redis://localhost:6379
-          NEXTAUTH_SECRET: test-secret
-          NEXTAUTH_URL: http://localhost:3000
+          BASE_URL: http://localhost:3000
           # LiteLLM test configuration - will use mock gateway automatically
           LITELLM_BASE_URL: http://localhost:4000
           LITELLM_TIMEOUT: 5000
+        run: npm run e2e --workspace=tests/e2e
 
-      - name: Upload Playwright report
-        uses: actions/upload-artifact@89ef406dd8d7e03cfd12d9e0a4a378f454709029 # v4.4.0
-        if: failure()
+      - name: Generate SBOM (CycloneDX)
+        if: always()
+        run: npx @cyclonedx/cyclonedx-npm --output-file sbom.json || true
+
+      - name: Upload artifacts (reports, traces, logs, sbom)
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
-          path: tests/e2e/playwright-report/
-          retention-days: 30
-
-      - name: Upload Playwright traces
-        uses: actions/upload-artifact@89ef406dd8d7e03cfd12d9e0a4a378f454709029 # v4.4.0
-        if: failure()
-        with:
-          name: playwright-traces
-          path: tests/e2e/test-results/
-          retention-days: 30
-
-  docker:
-    runs-on: ubuntu-latest
-    needs: [lint, build, test, e2e]
-    permissions:
-      contents: read
-      actions: read
-      id-token: write # Required for cosign keyless signing
-    outputs:
-      image-digest: ${{ steps.build.outputs.digest }}
-      image-name: ai-app-platform
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@c47758b77c9736f4b2ef4073d4d51994fabfe349 # v3.7.1
-
-      - name: Install cosign
-        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da # v3.7.0
-
-      - name: Build Docker image
-        id: build
-        uses: docker/build-push-action@5cd11c3a4ced054e52742c5fd54dca954e0edd85 # v6.7.0
-        with:
-          context: .
-          push: false
-          tags: ai-app-platform:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          outputs: type=docker,dest=/tmp/ai-app-platform.tar
-
-      - name: Load Docker image
-        run: docker load --input /tmp/ai-app-platform.tar
-
-      - name: Sign Docker image with cosign (keyless)
-        run: |
-          # Sign the image using keyless signing with OIDC
-          cosign sign --yes ai-app-platform:latest
-        env:
-          COSIGN_EXPERIMENTAL: 1
-
-      - name: Verify cosign signature
-        run: |
-          # Verify the signature we just created
-          cosign verify --certificate-identity-regexp=".*" --certificate-oidc-issuer-regexp=".*" ai-app-platform:latest
-        env:
-          COSIGN_EXPERIMENTAL: 1
-
-      - name: Generate SBOM
-        uses: anchore/sbom-action@61119d458adab75f756bc0b9e4bde25725f86a7a # v0.17.2
-        with:
-          image: ai-app-platform:latest
-          format: spdx-json
-          output-file: /tmp/sbom.spdx.json
-
-      - name: Sign SBOM with cosign
-        run: |
-          cosign sign-blob --yes /tmp/sbom.spdx.json --output-signature /tmp/sbom.spdx.json.sig --output-certificate /tmp/sbom.spdx.json.pem
-        env:
-          COSIGN_EXPERIMENTAL: 1
-
-      - name: Generate provenance attestation
-        run: |
-          # Create provenance document
-          cat > /tmp/provenance.json << EOF
-          {
-            "_type": "https://in-toto.io/Statement/v0.1",
-            "predicateType": "https://slsa.dev/provenance/v0.2",
-            "subject": [
-              {
-                "name": "ai-app-platform:latest",
-                "digest": {
-                  "sha256": "$(docker inspect --format='{{index .RepoDigests 0}}' ai-app-platform:latest | cut -d'@' -f2 | cut -d':' -f2 || echo 'unknown')"
-                }
-              }
-            ],
-            "predicate": {
-              "builder": {
-                "id": "https://github.com/actions/runner"
-              },
-              "buildType": "https://github.com/actions/runner@v1",
-              "invocation": {
-                "configSource": {
-                  "uri": "${{ github.repositoryUrl }}",
-                  "digest": {
-                    "sha1": "${{ github.sha }}"
-                  }
-                }
-              },
-              "metadata": {
-                "buildStartedOn": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-                "buildFinishedOn": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-                "completeness": {
-                  "parameters": true,
-                  "environment": false,
-                  "materials": false
-                },
-                "reproducible": false
-              }
-            }
-          }
-          EOF
-
-      - name: Sign provenance with cosign
-        run: |
-          cosign sign-blob --yes /tmp/provenance.json --output-signature /tmp/provenance.json.sig --output-certificate /tmp/provenance.json.pem
-        env:
-          COSIGN_EXPERIMENTAL: 1
-
-      - name: Upload supply chain artifacts
-        uses: actions/upload-artifact@89ef406dd8d7e03cfd12d9e0a4a378f454709029 # v4.4.0
-        with:
-          name: supply-chain-artifacts
+          name: test-artifacts
           path: |
-            /tmp/sbom.spdx.json
-            /tmp/sbom.spdx.json.sig
-            /tmp/sbom.spdx.json.pem
-            /tmp/provenance.json
-            /tmp/provenance.json.sig
-            /tmp/provenance.json.pem
-          retention-days: 30
-
-      - name: Upload image artifact
-        uses: actions/upload-artifact@89ef406dd8d7e03cfd12d9e0a4a378f454709029 # v4.4.0
-        with:
-          name: docker-image
-          path: /tmp/ai-app-platform.tar
-          retention-days: 7
-
-  # Simple provenance generation - more advanced SLSA integration can be added later
-  # This provides basic supply chain attestation for the Docker build
+            tests/e2e/playwright-report/
+            tests/e2e/test-results/
+            sbom.json
+            **/junit*.xml
+            **/logs/**
