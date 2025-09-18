@@ -58,7 +58,7 @@ echo ""
 
 # Step 6: Generate Prisma client
 print_step "Generating Prisma client..."
-npm run generate --workspace=packages/db
+npm run generate --workspace=apps/web
 print_success "Prisma client generated"
 echo ""
 
