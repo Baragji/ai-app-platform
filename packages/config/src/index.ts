@@ -30,7 +30,9 @@ const envSchema = z.object({
   OTEL_EXPORTER_OTLP_ENDPOINT: z.string().optional(),
   METRICS_ENABLED: z.string().default('true'),
   METRICS_PORT: z.string().default('9464'),
-  LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
+  LOG_LEVEL: z
+    .enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal'])
+    .default('info'),
   LOG_FORMAT: z.enum(['json', 'pretty']).default('json'),
 });
 

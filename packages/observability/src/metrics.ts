@@ -50,10 +50,15 @@ export function initializeMetrics(): MeterProvider | null {
     metrics.setGlobalMeterProvider(meterProvider);
 
     // Create default meter
-    defaultMeter = meterProvider.getMeter(config.serviceName, config.serviceVersion);
+    defaultMeter = meterProvider.getMeter(
+      config.serviceName,
+      config.serviceVersion
+    );
 
-    console.log(`📊 Metrics initialized on port ${config.metrics.port}${config.metrics.endpoint}`);
-    
+    console.log(
+      `📊 Metrics initialized on port ${config.metrics.port}${config.metrics.endpoint}`
+    );
+
     return meterProvider;
   } catch (error) {
     console.error('❌ Failed to initialize metrics:', error);
@@ -65,11 +70,11 @@ export function getMeter(name?: string, version?: string): Meter {
   if (!defaultMeter) {
     initializeMetrics();
   }
-  
+
   if (name && meterProvider) {
     return meterProvider.getMeter(name, version);
   }
-  
+
   return defaultMeter || metrics.getMeter('default');
 }
 
@@ -111,12 +116,16 @@ export class MetricsCollector {
     return this.counters.get(name);
   }
 
-  incrementCounter(name: string, value = 1, attributes?: Record<string, string | number | boolean>) {
+  incrementCounter(
+    name: string,
+    value = 1,
+    attributes?: Record<string, string | number | boolean>
+  ) {
     const counter = this.createCounter(name);
     counter.add(value, attributes);
   }
 
-  // Histogram methods  
+  // Histogram methods
   createHistogram(name: string, description?: string, unit?: string) {
     if (!this.histograms.has(name)) {
       const histogram = this.meter.createHistogram(name, {
@@ -128,7 +137,11 @@ export class MetricsCollector {
     return this.histograms.get(name);
   }
 
-  recordHistogram(name: string, value: number, attributes?: Record<string, string | number | boolean>) {
+  recordHistogram(
+    name: string,
+    value: number,
+    attributes?: Record<string, string | number | boolean>
+  ) {
     const histogram = this.createHistogram(name);
     histogram.record(value, attributes);
   }
@@ -146,31 +159,48 @@ export class MetricsCollector {
   }
 
   // Convenience methods for common patterns
-  recordLatency(operation: string, latencyMs: number, attributes?: Record<string, string | number | boolean>) {
-    this.recordHistogram(
-      'operation_duration_ms',
-      latencyMs,
-      { operation, ...attributes }
-    );
+  recordLatency(
+    operation: string,
+    latencyMs: number,
+    attributes?: Record<string, string | number | boolean>
+  ) {
+    this.recordHistogram('operation_duration_ms', latencyMs, {
+      operation,
+      ...attributes,
+    });
   }
 
-  recordRequest(endpoint: string, method: string, statusCode: number, attributes?: Record<string, string | number | boolean>) {
-    this.incrementCounter(
-      'http_requests_total',
-      1,
-      { endpoint, method, status_code: statusCode.toString(), ...attributes }
-    );
+  recordRequest(
+    endpoint: string,
+    method: string,
+    statusCode: number,
+    attributes?: Record<string, string | number | boolean>
+  ) {
+    this.incrementCounter('http_requests_total', 1, {
+      endpoint,
+      method,
+      status_code: statusCode.toString(),
+      ...attributes,
+    });
   }
 
-  recordError(operation: string, errorType?: string, attributes?: Record<string, string | number | boolean>) {
-    this.incrementCounter(
-      'operation_errors_total',
-      1,
-      { operation, error_type: errorType || 'unknown', ...attributes }
-    );
+  recordError(
+    operation: string,
+    errorType?: string,
+    attributes?: Record<string, string | number | boolean>
+  ) {
+    this.incrementCounter('operation_errors_total', 1, {
+      operation,
+      error_type: errorType || 'unknown',
+      ...attributes,
+    });
   }
 
-  recordBusinessMetric(name: string, value: number, attributes?: Record<string, string | number | boolean>) {
+  recordBusinessMetric(
+    name: string,
+    value: number,
+    attributes?: Record<string, string | number | boolean>
+  ) {
     this.recordHistogram(`business_${name}`, value, attributes);
   }
 }
@@ -185,7 +215,7 @@ export async function measureLatency<T>(
   attributes?: Record<string, string | number | boolean>
 ): Promise<T> {
   const startTime = Date.now();
-  
+
   try {
     const result = await Promise.resolve(fn());
     const latency = Date.now() - startTime;
@@ -193,8 +223,15 @@ export async function measureLatency<T>(
     return result;
   } catch (error) {
     const latency = Date.now() - startTime;
-    defaultMetrics.recordLatency(operation, latency, { ...attributes, error: 'true' });
-    defaultMetrics.recordError(operation, error instanceof Error ? error.name : 'UnknownError', attributes);
+    defaultMetrics.recordLatency(operation, latency, {
+      ...attributes,
+      error: 'true',
+    });
+    defaultMetrics.recordError(
+      operation,
+      error instanceof Error ? error.name : 'UnknownError',
+      attributes
+    );
     throw error;
   }
 }

@@ -16,7 +16,7 @@ export function initializeTracing(): NodeSDK | null {
   }
 
   const config = getObservabilityConfig();
-  
+
   if (!config.otel.enabled) {
     console.log('🔍 OpenTelemetry tracing is disabled');
     return null;
@@ -162,7 +162,9 @@ export function initializeTracing(): NodeSDK | null {
   try {
     sdk.start();
     isInitialized = true;
-    console.log(`🔍 OpenTelemetry tracing initialized with ${config.otel.exporterType} exporter`);
+    console.log(
+      `🔍 OpenTelemetry tracing initialized with ${config.otel.exporterType} exporter`
+    );
   } catch (error) {
     console.error('❌ Failed to initialize OpenTelemetry:', error);
   }
@@ -230,7 +232,7 @@ export function withSpan<T>(
   }
 ): Promise<T> {
   const span = createSpan(tracer, name, options);
-  
+
   return context.with(trace.setSpan(context.active(), span), async () => {
     try {
       const result = await Promise.resolve(fn());
@@ -241,7 +243,9 @@ export function withSpan<T>(
         code: SpanStatusCode.ERROR,
         message: error instanceof Error ? error.message : String(error),
       });
-      span.recordException(error instanceof Error ? error : new Error(String(error)));
+      span.recordException(
+        error instanceof Error ? error : new Error(String(error))
+      );
       throw error;
     } finally {
       span.end();
@@ -249,14 +253,19 @@ export function withSpan<T>(
   });
 }
 
-export function addSpanAttributes(attributes: Record<string, string | number | boolean>): void {
+export function addSpanAttributes(
+  attributes: Record<string, string | number | boolean>
+): void {
   const span = trace.getActiveSpan();
   if (span) {
     span.setAttributes(attributes);
   }
 }
 
-export function addSpanEvent(name: string, attributes?: Record<string, string | number | boolean>): void {
+export function addSpanEvent(
+  name: string,
+  attributes?: Record<string, string | number | boolean>
+): void {
   const span = trace.getActiveSpan();
   if (span) {
     span.addEvent(name, attributes);

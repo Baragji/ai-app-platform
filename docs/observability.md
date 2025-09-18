@@ -7,7 +7,7 @@ This document describes the comprehensive observability solution implemented in 
 The `@ai-app-platform/observability` package provides:
 
 - **Distributed Tracing**: Request correlation across services using OpenTelemetry
-- **Metrics Collection**: Business and system metrics with Prometheus compatibility  
+- **Metrics Collection**: Business and system metrics with Prometheus compatibility
 - **Structured Logging**: JSON logging with trace correlation using Pino
 - **Auto-instrumentation**: Automatic HTTP and Express.js instrumentation
 - **Configuration Management**: Environment-based configuration with sensible defaults
@@ -52,11 +52,13 @@ LOG_INCLUDE_TRACE_ID=true
 ### 1. Distributed Tracing
 
 #### Automatic Instrumentation
+
 - HTTP requests and responses
 - Express.js middleware and routes
 - Database queries (when using supported libraries)
 
 #### Manual Tracing
+
 ```typescript
 import { webTracer, withSpan, getCurrentTraceId } from '@/lib/otel';
 
@@ -64,14 +66,16 @@ import { webTracer, withSpan, getCurrentTraceId } from '@/lib/otel';
 const result = await withSpan(webTracer, 'business-operation', async () => {
   const traceId = getCurrentTraceId();
   console.log(`Processing with trace ID: ${traceId}`);
-  
+
   // Your business logic here
   return await processData();
 });
 ```
 
 #### Trace Correlation
+
 Every log entry automatically includes trace and span IDs:
+
 ```json
 {
   "level": "info",
@@ -86,19 +90,21 @@ Every log entry automatically includes trace and span IDs:
 ### 2. Metrics Collection
 
 #### Built-in Metrics
+
 - HTTP request counts and latencies
 - Error rates by operation
 - Business metrics
 - System performance metrics
 
 #### Custom Metrics
+
 ```typescript
 import { metrics, measureLatency } from '@/lib/otel';
 
 // Record business metrics
-metrics.recordBusinessMetric('user_signups', 1, { 
-  source: 'web', 
-  region: 'us-east' 
+metrics.recordBusinessMetric('user_signups', 1, {
+  source: 'web',
+  region: 'us-east',
 });
 
 // Measure operation latency
@@ -112,13 +118,16 @@ metrics.recordHistogram('response_size', 1024, { endpoint: '/api/data' });
 ```
 
 #### Metrics Endpoint
+
 Metrics are exposed in Prometheus format at:
+
 - Direct: `http://localhost:9464/metrics`
 - Via app: `http://localhost:3000/api/metrics`
 
 ### 3. Structured Logging
 
 #### Enhanced Logger
+
 ```typescript
 import { logger, createLogger } from '@/lib/otel';
 
@@ -127,10 +136,14 @@ logger.info({ userId: '123', action: 'login' }, 'User logged in');
 
 // Create component-specific logger
 const dbLogger = createLogger('database');
-dbLogger.warn({ query: 'SELECT * FROM users', duration: 5000 }, 'Slow query detected');
+dbLogger.warn(
+  { query: 'SELECT * FROM users', duration: 5000 },
+  'Slow query detected'
+);
 ```
 
 #### Request/Response Logging
+
 ```typescript
 import { logger } from '@/lib/otel';
 
@@ -142,10 +155,10 @@ logger.logResponse(res, 150, 'API request completed');
 logger.logError(error, { userId: '123', operation: 'data-sync' });
 
 // Log business events
-logger.logBusinessEvent('user_signup', { 
-  userId: '123', 
+logger.logBusinessEvent('user_signup', {
+  userId: '123',
   source: 'web',
-  plan: 'premium' 
+  plan: 'premium',
 });
 ```
 
@@ -154,34 +167,33 @@ logger.logBusinessEvent('user_signup', {
 ### Next.js API Routes
 
 ```typescript
-import { 
-  webTracer, 
-  logger, 
-  metrics, 
-  withSpan, 
-  getCurrentTraceId 
+import {
+  webTracer,
+  logger,
+  metrics,
+  withSpan,
+  getCurrentTraceId,
 } from '@/lib/otel';
 
 export async function GET(request: NextRequest) {
   const traceId = getCurrentTraceId();
-  
+
   return withSpan(webTracer, 'api-handler', async () => {
     try {
       logger.info({ traceId, url: request.url }, 'Processing request');
-      
+
       const result = await measureLatency('business-logic', async () => {
         return await businessOperation();
       });
-      
+
       metrics.recordBusinessMetric('api_success', 1, { endpoint: '/api/data' });
-      
+
       logger.info({ traceId, result }, 'Request completed successfully');
       return NextResponse.json(result);
-      
     } catch (error) {
       logger.error({ traceId, error }, 'Request failed');
       metrics.recordError('api-handler', error.name);
-      
+
       return NextResponse.json(
         { error: 'Internal server error', traceId },
         { status: 500 }
@@ -200,18 +212,18 @@ class UserService {
   async createUser(userData: CreateUserData) {
     return withSpan(webTracer, 'user-service.create', async () => {
       logger.info({ userData: { email: userData.email } }, 'Creating user');
-      
+
       const user = await measureLatency('database.user.create', async () => {
         return prisma.user.create({ data: userData });
       });
-      
-      logger.logBusinessEvent('user_created', { 
-        userId: user.id, 
-        email: user.email 
+
+      logger.logBusinessEvent('user_created', {
+        userId: user.id,
+        email: user.email,
       });
-      
+
       metrics.recordBusinessMetric('users_created', 1);
-      
+
       return user;
     });
   }
@@ -224,38 +236,40 @@ class UserService {
 
 ```typescript
 {
-  serviceName: string;           // Default: 'ai-app-platform'
-  serviceVersion: string;        // Default: '1.0.0'
-  environment: string;           // Default: 'development'
-  
+  serviceName: string; // Default: 'ai-app-platform'
+  serviceVersion: string; // Default: '1.0.0'
+  environment: string; // Default: 'development'
+
   otel: {
-    enabled: boolean;            // Default: true
-    endpoint: string;            // Default: 'http://localhost:4318/v1/traces'
-    exporterType: 'otlp' | 'console';  // Default: 'console'
-  };
-  
+    enabled: boolean; // Default: true
+    endpoint: string; // Default: 'http://localhost:4318/v1/traces'
+    exporterType: 'otlp' | 'console'; // Default: 'console'
+  }
+
   metrics: {
-    enabled: boolean;            // Default: true
-    port: number;               // Default: 9464
-    endpoint: string;           // Default: '/metrics'
-  };
-  
+    enabled: boolean; // Default: true
+    port: number; // Default: 9464
+    endpoint: string; // Default: '/metrics'
+  }
+
   logging: {
-    level: string;              // Default: 'info'
+    level: string; // Default: 'info'
     format: 'json' | 'pretty'; // Default: 'json'
-    includeTraceId: boolean;   // Default: true
-  };
+    includeTraceId: boolean; // Default: true
+  }
 }
 ```
 
 ### Development vs Production
 
 Development (default):
+
 - Console trace exporter (traces output to stdout)
 - Pretty log formatting
 - All instrumentations enabled
 
 Production:
+
 - OTLP trace exporter (send to observability backend)
 - JSON log formatting
 - Optimized instrumentation set
@@ -263,12 +277,14 @@ Production:
 ## Monitoring Setup
 
 ### Local Development
+
 1. No external dependencies required
 2. Traces appear in console output
 3. Metrics available at `http://localhost:9464/metrics`
 4. Structured logs with trace correlation
 
 ### Production Deployment
+
 1. Configure OTLP endpoint for traces
 2. Set up Prometheus scraping for metrics
 3. Configure log aggregation system
@@ -277,24 +293,28 @@ Production:
 ## Best Practices
 
 ### Tracing
+
 - Use meaningful span names that describe the operation
 - Add relevant attributes to spans for filtering and analysis
 - Keep span hierarchies shallow for better performance
 - Don't trace overly granular operations
 
 ### Metrics
+
 - Use consistent naming conventions (snake_case)
 - Add relevant labels but avoid high cardinality
 - Prefer histograms for latency measurements
 - Use counters for event counting
 
 ### Logging
+
 - Log at appropriate levels (info for normal operations, warn for issues, error for failures)
 - Include relevant context in log messages
 - Use structured logging with consistent field names
 - Avoid logging sensitive information
 
 ### Performance
+
 - Observability overhead is minimal (~1-5% CPU)
 - Sampling can be configured for high-throughput scenarios
 - Metrics collection is lightweight
@@ -340,6 +360,7 @@ See the TypeScript definitions in `packages/observability/src/` for complete API
 ## Examples
 
 Complete examples are available in:
+
 - `apps/web/src/app/api/health/route.ts` - Health check with observability
 - `apps/web/src/app/api/metrics/route.ts` - Metrics endpoint
 - `apps/web/src/lib/otel.ts` - Application integration

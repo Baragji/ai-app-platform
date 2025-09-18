@@ -104,7 +104,7 @@ jobs:
             --include-dev \
             --include-optional \
             --output-reproducible || true
-          
+
           # Generate SPDX format SBOM for compatibility
           npx @cyclonedx/cyclonedx-npm \
             --output-file sbom.spdx.json \
@@ -141,14 +141,14 @@ jobs:
         run: |
           # Create a comprehensive security evidence bundle
           mkdir -p security-evidence
-          
+
           # Copy SBOMs
           cp sbom.json security-evidence/ 2>/dev/null || echo "CycloneDX SBOM not found"
           cp sbom.spdx.json security-evidence/ 2>/dev/null || echo "SPDX SBOM not found"
-          
+
           # Copy build info
           cp build-info.json security-evidence/ 2>/dev/null || echo "Build info not found"
-          
+
           # Create evidence manifest
           cat > security-evidence/manifest.json << EOF
           {
@@ -170,7 +170,7 @@ jobs:
             }
           }
           EOF
-          
+
           # List all evidence files
           echo "Security Evidence Bundle Contents:"
           ls -la security-evidence/

@@ -15,7 +15,7 @@ describe('Observability Config', () => {
 
   it('should return default configuration', () => {
     const config = getObservabilityConfig();
-    
+
     expect(config.serviceName).toBe('ai-app-platform');
     expect(config.serviceVersion).toBe('1.0.0');
     expect(config.otel.enabled).toBe(true);
@@ -30,7 +30,7 @@ describe('Observability Config', () => {
     process.env.LOG_LEVEL = 'debug';
 
     const config = getObservabilityConfig();
-    
+
     expect(config.serviceName).toBe('test-service');
     expect(config.otel.enabled).toBe(false);
     expect(config.logging.level).toBe('debug');
@@ -45,7 +45,7 @@ describe('Observability Config', () => {
     console.error = jest.fn();
 
     const config = getObservabilityConfig();
-    
+
     // Should fall back to defaults when invalid values are provided
     expect(config.logging.level).toBe('info');
     expect(config.otel.enabled).toBe(true);
@@ -57,7 +57,7 @@ describe('Observability Config', () => {
   it('should cache configuration', () => {
     const config1 = getObservabilityConfig();
     const config2 = getObservabilityConfig();
-    
+
     expect(config1).toBe(config2); // Same object reference
   });
 });

@@ -2,7 +2,7 @@
 
 **Labels**: `phase-3`, `feature`, `gateway`, `observability`  
 **Milestone**: Phase 3 - AI Gateway Enhancement  
-**Epic**: [EPIC] Phase 3 - Multi-Model AI Gateway  
+**Epic**: [EPIC] Phase 3 - Multi-Model AI Gateway
 
 ## Overview
 
@@ -13,7 +13,7 @@ Implement comprehensive observability for the AI Gateway with metrics endpoints,
 The AI Gateway currently has basic Langfuse tracing capabilities and health checks via `/api/llm`. We need to expand this to provide production-grade observability including:
 
 - Prometheus-compatible metrics endpoint
-- Enhanced health checks  
+- Enhanced health checks
 - Cost and latency tracking
 - Complete metrics dashboard for operations
 
@@ -84,12 +84,14 @@ The AI Gateway currently has basic Langfuse tracing capabilities and health chec
 ### Files to Create/Modify
 
 **New Files**:
+
 - `packages/gateway/src/metrics.ts` - Core metrics collection
 - `apps/web/src/app/api/gateway/metrics/route.ts` - Metrics API endpoint
 - `apps/web/src/components/MetricsDashboard.tsx` - UI dashboard
 - `packages/gateway/tests/metrics.test.ts` - Metrics tests
 
 **Modified Files**:
+
 - `packages/gateway/src/langfuse-service.ts` - Enhanced tracing
 - `packages/gateway/src/litellm-gateway.ts` - Metrics integration
 - `apps/web/src/app/api/llm/route.ts` - Metrics collection
@@ -98,6 +100,7 @@ The AI Gateway currently has basic Langfuse tracing capabilities and health chec
 ### Technical Requirements
 
 **Metrics Format**:
+
 ```typescript
 interface GatewayMetrics {
   requests: {
@@ -123,15 +126,19 @@ interface GatewayMetrics {
     output: number;
     total: number;
   };
-  providers: Record<string, {
-    status: 'healthy' | 'unhealthy' | 'degraded';
-    lastCheck: string;
-    latency: number;
-  }>;
+  providers: Record<
+    string,
+    {
+      status: 'healthy' | 'unhealthy' | 'degraded';
+      lastCheck: string;
+      latency: number;
+    }
+  >;
 }
 ```
 
 **Health Check Response**:
+
 ```typescript
 interface HealthCheckResponse {
   status: 'healthy' | 'unhealthy' | 'degraded';
@@ -153,6 +160,7 @@ interface HealthCheckResponse {
 ## Testing Requirements
 
 ### Unit Tests
+
 - [ ] **Metrics collection accuracy**
   - Counter increments
   - Latency calculations
@@ -165,6 +173,7 @@ interface HealthCheckResponse {
   - Error handling
 
 ### Integration Tests
+
 - [ ] **API endpoint functionality**
   - `/metrics` endpoint returns valid Prometheus format
   - `/health` endpoint validates all components
@@ -176,6 +185,7 @@ interface HealthCheckResponse {
   - Error state handling
 
 ### Performance Tests
+
 - [ ] **Metrics overhead**
   - Measure impact on request latency
   - Memory usage with metrics collection
@@ -184,6 +194,7 @@ interface HealthCheckResponse {
 ## Definition of Done
 
 ✅ **Complete metrics dashboard** operational with:
+
 - Real-time gateway performance visualization
 - Cost tracking and breakdown by model/provider
 - Historical trend analysis
@@ -191,22 +202,26 @@ interface HealthCheckResponse {
 - Integration with existing Langfuse traces
 
 ✅ **Production-ready endpoints**:
+
 - `/metrics` - Prometheus-compatible metrics
 - Enhanced `/health` with component status
 - `/api/gateway/metrics` for dashboard consumption
 
 ✅ **Enhanced Langfuse integration** with:
+
 - Cost attribution per trace
 - Performance correlation
 - Error context and debugging
 
 ✅ **Comprehensive test coverage** (≥90%):
+
 - Unit tests for all metrics collection
 - Integration tests for API endpoints
 - Dashboard component tests
 - Performance regression tests
 
 ✅ **Documentation**:
+
 - Metrics collection specification
 - Dashboard usage guide
 - Langfuse integration documentation
@@ -229,7 +244,7 @@ interface HealthCheckResponse {
 ## Related Issues
 
 - Issue #15: [EPIC] Phase 3 - Multi-Model AI Gateway
-- Issue #16: Multi-Provider Adapters  
+- Issue #16: Multi-Provider Adapters
 - Issue #17: Failover & Circuit Breaker
 - Issue #13: Model Picker & Metrics Dashboard (Phase 2)
 

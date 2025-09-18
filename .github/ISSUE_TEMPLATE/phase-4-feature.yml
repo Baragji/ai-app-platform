@@ -1,7 +1,7 @@
 name: Phase 4 Feature
 description: Create a Phase 4 distributed state & events feature
-title: "[Phase 4] "
-labels: ["phase-4", "feature"]
+title: '[Phase 4] '
+labels: ['phase-4', 'feature']
 assignees:
   - Copilot
 body:
@@ -10,7 +10,7 @@ body:
       value: |
         ## Phase 4: Distributed State & Events
         This template is for Phase 4 features related to event-driven architecture, message queues, event sourcing, and service contracts.
-        
+
   - type: input
     id: feature-name
     attributes:
@@ -19,7 +19,7 @@ body:
       placeholder: e.g., Event Sourcing & GraphQL
     validations:
       required: true
-      
+
   - type: textarea
     id: description
     attributes:
@@ -28,7 +28,7 @@ body:
       placeholder: Describe what this feature will accomplish...
     validations:
       required: true
-      
+
   - type: textarea
     id: technical-requirements
     attributes:
@@ -37,12 +37,12 @@ body:
       placeholder: |
         ### Files to Create/Modify
         - `packages/...`
-        
+
         ### Implementation Details
         - ...
     validations:
       required: true
-      
+
   - type: textarea
     id: acceptance-criteria
     attributes:
@@ -55,7 +55,7 @@ body:
         - [ ] Performance requirements met
     validations:
       required: true
-      
+
   - type: textarea
     id: dependencies
     attributes:
@@ -64,12 +64,12 @@ body:
       placeholder: |
         ### Prerequisites
         - Issue #XX: ...
-        
+
         ### Related Issues
         - Issue #XX: ...
     validations:
       required: false
-      
+
   - type: textarea
     id: success-metrics
     attributes:
@@ -79,7 +79,7 @@ body:
         ### Performance Targets
         - Latency: <Xms p95
         - Throughput: >X requests/second
-        
+
         ### Quality Goals
         - Test coverage: >X%
         - Documentation completeness: 100%

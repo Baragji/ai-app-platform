@@ -16,7 +16,7 @@ jobs:
     outputs:
       hashes: ${{ steps.hash.outputs.hashes }}
       image-digest: ${{ steps.image.outputs.digest }}
-    
+
     services:
       postgres:
         image: postgres:16
@@ -82,7 +82,7 @@ jobs:
           # Create distributable archives for provenance
           tar -czf ai-app-platform-web.tar.gz -C apps/web .next package.json
           tar -czf ai-app-platform-gateway.tar.gz -C packages/gateway dist package.json
-          
+
           # Create combined distribution
           mkdir -p dist
           cp -r apps/web/.next dist/web
@@ -107,7 +107,7 @@ jobs:
           echo "Generating SHA256 hashes..."
           sha256sum ai-app-platform-*.tar.gz sbom-provenance.json > checksums.txt
           cat checksums.txt
-          
+
           # Format hashes for SLSA provenance
           echo "hashes=$(sha256sum ai-app-platform-*.tar.gz sbom-provenance.json | base64 -w0)" >> "$GITHUB_OUTPUT"
 
@@ -131,8 +131,8 @@ jobs:
       contents: write
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
     with:
-      base64-subjects: "${{ needs.build.outputs.hashes }}"
-      provenance-name: "ai-app-platform.intoto.jsonl"
+      base64-subjects: '${{ needs.build.outputs.hashes }}'
+      provenance-name: 'ai-app-platform.intoto.jsonl'
       # Upload provenance to release assets if this is a release
       upload-assets: ${{ github.event_name == 'release' }}
 
@@ -142,7 +142,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build, provenance]
     if: always() && needs.provenance.result == 'success'
-    
+
     steps:
       - name: Download build artifacts
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
@@ -152,7 +152,7 @@ jobs:
       - name: Download provenance
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
-          name: "${{ needs.provenance.outputs.provenance-name }}"
+          name: '${{ needs.provenance.outputs.provenance-name }}'
 
       - name: Install SLSA verifier
         run: |
@@ -177,20 +177,20 @@ jobs:
         run: |
           cat > verification-report.md << EOF
           # SLSA Provenance Verification Report
-          
+
           **Build ID**: ${{ github.run_id }}
           **Commit**: ${{ github.sha }}
           **Ref**: ${{ github.ref }}
           **Timestamp**: $(date -u +%Y-%m-%dT%H:%M:%SZ)
-          
+
           ## Artifacts Verified
           $(ls -la ai-app-platform-*.tar.gz sbom-provenance.json)
-          
+
           ## Provenance Details
           - **Provenance File**: ${{ needs.provenance.outputs.provenance-name }}
           - **SLSA Level**: 3
           - **Builder**: GitHub Actions
-          
+
           ## Verification Status
           All artifacts have been verified against their SLSA provenance attestation.
           EOF
@@ -210,7 +210,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build, provenance, verify]
     if: always()
-    
+
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
@@ -220,35 +220,35 @@ jobs:
       - name: Create comprehensive security evidence bundle
         run: |
           mkdir -p security-evidence-bundle
-          
+
           # Copy build artifacts
           find artifacts -name "*.tar.gz" -exec cp {} security-evidence-bundle/ \;
           find artifacts -name "sbom-provenance.json" -exec cp {} security-evidence-bundle/ \;
           find artifacts -name "checksums.txt" -exec cp {} security-evidence-bundle/ \;
-          
+
           # Copy provenance and verification
           find artifacts -name "*.intoto.jsonl" -exec cp {} security-evidence-bundle/ \;
           find artifacts -name "verification-report.md" -exec cp {} security-evidence-bundle/ \;
-          
+
           # Create master evidence manifest
           cat > security-evidence-bundle/SECURITY_EVIDENCE.md << EOF
           # Security Evidence Bundle
-          
+
           This bundle contains comprehensive security evidence for the AI App Platform build.
-          
+
           ## Contents
-          
+
           ### Build Artifacts
           - \`ai-app-platform-web.tar.gz\` - Web application build
           - \`ai-app-platform-gateway.tar.gz\` - Gateway package build  
           - \`ai-app-platform-complete.tar.gz\` - Complete distribution
           - \`checksums.txt\` - SHA256 checksums for all artifacts
-          
+
           ### Supply Chain Security
           - \`sbom-provenance.json\` - Software Bill of Materials (CycloneDX 1.6)
           - \`*.intoto.jsonl\` - SLSA v3 provenance attestation
           - \`verification-report.md\` - Provenance verification results
-          
+
           ### Build Information
           - **Build ID**: ${{ github.run_id }}
           - **Commit SHA**: ${{ github.sha }}
@@ -256,7 +256,7 @@ jobs:
           - **Build Date**: $(date -u +%Y-%m-%dT%H:%M:%SZ)
           - **SLSA Level**: 3
           - **SBOM Format**: CycloneDX 1.6
-          
+
           ### Compliance Status
           - ✅ **SBOM Generation**: Complete (CycloneDX 1.6)
           - ✅ **SLSA Provenance**: Complete (Level 3)
@@ -265,24 +265,24 @@ jobs:
           - 🟡 **ASVS Compliance**: In Progress
           - 🔴 **AI Act Compliance**: Planned
           - 🔴 **ISO 42001 Compliance**: Planned
-          
+
           ## Verification
-          
+
           To verify this evidence bundle:
-          
+
           1. Verify artifact checksums: \`sha256sum -c checksums.txt\`
           2. Verify SLSA provenance with slsa-verifier
           3. Validate SBOM format with CycloneDX tools
-          
+
           ## Usage
-          
+
           This evidence bundle supports:
           - Supply chain security verification
           - Compliance auditing and reporting  
           - Vulnerability analysis and tracking
           - Regulatory compliance demonstration
           EOF
-          
+
           # List bundle contents
           echo "Security Evidence Bundle Contents:"
           ls -la security-evidence-bundle/
@@ -292,4 +292,4 @@ jobs:
         with:
           name: security-evidence-bundle-${{ github.run_id }}
           path: security-evidence-bundle/
-          retention-days: 365  # Keep security evidence for 1 year
+          retention-days: 365 # Keep security evidence for 1 year
