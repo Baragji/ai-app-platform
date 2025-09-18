@@ -114,8 +114,8 @@ Based on the comprehensive roadmap in `docs/ROADMAP.md`, here are the GitHub iss
 **Issue #18: Gateway Observability**
 
 - Labels: `phase-3`, `feature`, `gateway`, `observability`
-- Files: Metrics endpoints, Langfuse integration
-- DoD: Complete metrics dashboard
+- Files: `packages/gateway/src/metrics.ts` (new), `/metrics` & `/health` endpoints, enhanced Langfuse integration, `apps/web/src/components/MetricsDashboard.tsx` (new)
+- DoD: Complete metrics dashboard with real-time performance, cost tracking, and provider health monitoring
 
 ### Phase 4: Distributed State & Events (Labels: `phase-4`, `epic`)
 
