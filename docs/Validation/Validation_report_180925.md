@@ -2,7 +2,7 @@ Validation Result
 Verdict: Your assessment is broadly accurate. This is a strong, production-leaning foundation worth building on—not starting over.
 
 What I verified as correct
-Monorepo + Workspaces: Confirmed in package.json with apps/*, packages/*, tests/*.
+Monorepo + Workspaces: Confirmed in package.json with apps/_, packages/_, tests/\*.
 CI/CD & Security: .github/workflows/ci.yml runs lint, type-check, unit and E2E tests, builds gateway first, and generates an SBOM. OpenSSF Scorecard workflow is present (scorecard.yml). Supply chain security is documented (docs/supply-chain.md).
 Testing: Unit (Jest) and E2E (Playwright) are set up with projects and useful configs.
 AI Gateway Abstraction: packages/gateway includes litellm-gateway.ts, a mock gateway, and Langfuse integration.

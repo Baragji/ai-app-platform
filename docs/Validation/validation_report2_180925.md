@@ -1,6 +1,7 @@
 Done — I started services, ran migrations and seed, built packages, started the app, and ran tests. Here's a concise report of what I ran, what passed, what failed, and exactly what to do next to finish the remaining pieces.
 
 ## What I did (commands I ran)
+
 - Started Postgres and Redis:
   - docker compose up -d db redis
 - Installed dependencies:
@@ -24,6 +25,7 @@ Done — I started services, ran migrations and seed, built packages, started th
   - Playwright attempted to start a production server and run browsers; this encountered issues (details below)
 
 ## Status summary (todo list)
+
 - Start dev services (Postgres + Redis): completed
 - Run database migrations & seed: completed
 - Build gateway package: completed
@@ -34,6 +36,7 @@ Done — I started services, ran migrations and seed, built packages, started th
 - Start LiteLLM gateway (manual): not-started (external dependency)
 
 ## What passed
+
 - Docker services started (containers up for db and redis)
 - Prisma migrations applied successfully
 - Database seeded successfully (demo user + demo project)
@@ -42,6 +45,7 @@ Done — I started services, ran migrations and seed, built packages, started th
 - Unit tests: all tests passed (3 suites, 20 tests)
 
 ## What failed / blocked and why
+
 1. Playwright e2e run failed:
    - Playwright's configured `webServer` runs `npm run start --workspace=apps/web` (production start). It expects a built `.next` and to start production server, which requires:
      - NEXTAUTH_SECRET to be set (error: Missing secret in production)
@@ -55,6 +59,7 @@ Done — I started services, ran migrations and seed, built packages, started th
    - This is an external service (expected at LITELLM_BASE_URL, default http://localhost:4000). The repo does not include a local LiteLLM binary or script to start it automatically. Tests and the app may work without it (mock gateway mode exists), but if you want real gateway integration, you must run LiteLLM separately.
 
 ## Exact errors I saw (most relevant)
+
 - prisma migrate failed initially: Environment variable not found: DATABASE_URL
   - Fixed by copying .env.example to .env and exporting env vars for the shell.
 - Playwright: missing browser executables
@@ -64,6 +69,7 @@ Done — I started services, ran migrations and seed, built packages, started th
 - Playwright webServer: "Could not find a production build in the '.next' directory" (before I ran next build)
 
 ## Recommended next steps (to finish e2e & health checks)
+
 1. Install Playwright browsers (required for e2e):
    - npx playwright install
 2. Ensure production secret is set (for production server runs):
@@ -87,19 +93,23 @@ Done — I started services, ran migrations and seed, built packages, started th
      - Note: the repo's playwright.config.ts uses reuseExistingServer: !process.env.CI, so CI=false allows reuse, but Playwright may still try to start webServer depending on config. If it tries to start a production server, switch to option A.
 
 ## Small fixes I applied (repo edits)
+
 - Updated copilot-instructions.md earlier in this session to include additional project-specific patterns and conventions (import conventions, API response structure, prisma location note, mocking patterns for tests, etc.)
 
 ## Logs / outputs I captured
+
 - Unit tests: all passed (20/20)
 - Migration log: migrations applied
 - Seed: demo user + demo project created
 - Playwright run: large failure list due to missing browser binaries and NEXTAUTH_SECRET
 
 ## Anything I can't do automatically
+
 - Start the external LiteLLM gateway (not included in repo) — must be started manually or mocked via env.
 - Install Playwright browsers and set NEXTAUTH_SECRET automatically without your confirmation — I can run the commands if you want me to proceed.
 
 If you want, I can continue and:
+
 - Install Playwright browsers now (npx playwright install) and re-run the e2e flow; or
 - Set a temporary NEXTAUTH_SECRET in .env and re-run Playwright (I already copied .env.example to .env earlier — I can update it).
-Tell me which option you prefer and I’ll proceed (I'll update the todo list and mark the next item in-progress before running).
+  Tell me which option you prefer and I’ll proceed (I'll update the todo list and mark the next item in-progress before running).

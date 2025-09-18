@@ -1,6 +1,7 @@
 # Production Readiness Plan — Consolidated Validation Actions
 
 This plan consolidates findings from:
+
 - docs/Validation/Validation_report_180925.md
 - docs/Validation/validation_report2_180925.md
 
@@ -43,6 +44,7 @@ Note: Prisma schema duplication still exists at `packages/db/prisma/schema.prism
   - `docker compose up -d db redis`
 
 Acceptance:
+
 - `curl http://localhost:3000/health` returns 200 when app is running
 
 ---
@@ -50,12 +52,14 @@ Acceptance:
 ## 1) E2E Test Stabilization (Projects + Auth)
 
 Findings:
+
 - Auth previously flagged; latest failures are mostly UI timing:
   - Modal not closing after creating a project ("Create New Project" remains visible)
   - Occasional timeouts waiting for `/api/projects` refresh
 - Tests already use `#email` / `#password` and semantic selectors.
 
 Actions:
+
 1. Verify login success path (manual + logs)
    - Enable NextAuth debug locally if needed: `NEXTAUTH_DEBUG=true`
    - Confirm redirect to `/projects` on valid creds (`demo@example.com` / `demo123`)
@@ -71,6 +75,7 @@ Actions:
    - After clicking delete, assert the card count becomes 0
 
 Acceptance:
+
 - All projects E2E tests pass reliably across Chromium, Firefox, WebKit
 
 ---
@@ -78,15 +83,18 @@ Acceptance:
 ## 2) Prisma Source of Truth Consolidation
 
 Findings:
+
 - CI runs generate/migrate/seed via `apps/web`
 - Dockerfile runs generate via `packages/db`
 - Both `apps/web/prisma` and `packages/db/prisma` exist → drift risk
 - Copilot instructions state: schema lives in `apps/web/prisma` (NOT in `packages/db`)
 
 Decision:
+
 - Use **apps/web/prisma** as the single source of truth.
 
 Actions:
+
 1. Update Dockerfile to generate via `apps/web`
    - Replace `npm run generate --workspace=packages/db` with `npm run generate --workspace=apps/web`
 2. Audit and remove/merge `packages/db/prisma`
@@ -96,6 +104,7 @@ Actions:
    - Import `prisma` consistently from the chosen client module (e.g., `@/lib/prisma` or a shared package)
 
 Acceptance:
+
 - One schema location (apps/web/prisma)
 - CI and Docker builds work without referencing `packages/db/prisma`
 
@@ -104,14 +113,17 @@ Acceptance:
 ## 3) Remove Legacy In-Memory DB
 
 Finding:
+
 - `apps/web/src/lib/db.ts` is an in-memory mock that conflicts with Prisma usage.
 
 Actions:
+
 - [ ] Search for imports of `@/src/lib/db` or `@/lib/db`
 - [ ] If unused, delete the file
 - [ ] If used, replace references with the real Prisma client import and adjust code accordingly
 
 Acceptance:
+
 - No runtime imports of the in-memory DB; only real Prisma client is used
 
 ---
@@ -119,12 +131,15 @@ Acceptance:
 ## 4) Postgres Version Alignment
 
 Finding:
+
 - CI uses `postgres:16`, docker-compose uses `postgres:15-alpine`.
 
 Actions:
+
 - Pick a version (recommend 16) and align both CI and compose for parity
 
 Acceptance:
+
 - Same major Postgres version in CI and local compose
 
 ---
@@ -132,10 +147,12 @@ Acceptance:
 ## 5) CI/CD Enhancements
 
 Current:
+
 - CI runs lint, type-check, unit and E2E tests, builds gateway, generates SBOM
 - OpenSSF Scorecard workflow present
 
 Planned Enhancements (optional but recommended):
+
 1. Supply-chain signing and provenance
    - Add Cosign keyless signing for container images
    - Generate and sign provenance (in-toto) and SBOM
@@ -144,6 +161,7 @@ Planned Enhancements (optional but recommended):
    - Ensure `actions/setup-node` caches NPM; optionally cache Playwright binaries per runner
 
 Acceptance:
+
 - CI artifact includes SBOM, and optionally signed provenance
 - Reproducible builds with verification steps
 
@@ -152,14 +170,17 @@ Acceptance:
 ## 6) LiteLLM Gateway Mode
 
 Finding:
+
 - E2E and local dev can use mock mode; real LiteLLM is external.
 
 Actions:
+
 - Ensure tests use mock mode by default
   - `LITELLM_MODE=mock` in E2E/CI environments, or rely on `NODE_ENV=test` behavior
 - Document how to start LiteLLM for manual testing (optional)
 
 Acceptance:
+
 - E2E fully pass without external LiteLLM service
 
 ---
@@ -183,6 +204,7 @@ Acceptance:
    - `curl -f http://localhost:3000/health`
 
 Acceptance:
+
 - All unit and E2E tests pass
 - Health endpoint returns 200
 

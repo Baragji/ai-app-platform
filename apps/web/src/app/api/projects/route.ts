@@ -37,7 +37,7 @@ export async function GET() {
         select: { id: true },
       });
       if (dupes.length > 1) {
-        const toDelete = dupes.slice(1).map((d) => d.id);
+        const toDelete = dupes.slice(1).map((d: { id: string }) => d.id);
         await prisma.project.deleteMany({ where: { id: { in: toDelete } } });
       }
     } catch (cleanupErr) {
