@@ -32,37 +32,43 @@ npm ci --include-workspace-root --workspaces
 print_success "Dependencies installed"
 echo ""
 
-# Step 2: Build gateway
+# Step 2: Build observability package first
+print_step "Building observability package..."
+npm run build --workspace=packages/observability
+print_success "Observability built"
+echo ""
+
+# Step 3: Build gateway
 print_step "Building gateway package..."
 npm run build --workspace=packages/gateway
 print_success "Gateway built"
 echo ""
 
-# Step 3: Run ESLint
+# Step 4: Run ESLint
 print_step "Running ESLint..."
 npm run lint
 print_success "ESLint passed"
 echo ""
 
-# Step 4: Check Prettier formatting
+# Step 5: Check Prettier formatting
 print_step "Checking Prettier formatting..."
 npm run format:check
 print_success "Prettier check passed"
 echo ""
 
-# Step 5: Type check
+# Step 6: Type check
 print_step "Running TypeScript type check..."
 npm run type-check
 print_success "Type check passed"
 echo ""
 
-# Step 6: Generate Prisma client
+# Step 7: Generate Prisma client
 print_step "Generating Prisma client..."
 npm run generate --workspace=apps/web
 print_success "Prisma client generated"
 echo ""
 
-# Step 7: Build application
+# Step 8: Build application
 print_step "Building application..."
 export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_db"
 export REDIS_URL="redis://localhost:6379"
@@ -75,7 +81,7 @@ npm run build
 print_success "Application built"
 echo ""
 
-# Step 8: Run unit tests (optional - requires DB)
+# Step 9: Run unit tests (optional - requires DB)
 print_step "Running unit tests (skipping - requires database)..."
 echo "💡 To run tests, start PostgreSQL and Redis, then run: npm run test --workspace=tests/unit"
 echo ""
