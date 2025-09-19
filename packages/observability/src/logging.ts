@@ -29,17 +29,17 @@ export function initializeLogging(): Logger {
     mixin: () => {
       const traceId = getCurrentTraceId();
       const spanId = getCurrentSpanId();
-      
+
       const mixinData: Record<string, string> = {};
-      
+
       if (config.logging.includeTraceId && traceId) {
         mixinData.traceId = traceId;
       }
-      
+
       if (config.logging.includeTraceId && spanId) {
         mixinData.spanId = spanId;
       }
-      
+
       return mixinData;
     },
     base: {
@@ -50,20 +50,28 @@ export function initializeLogging(): Logger {
   };
 
   // Configure transport for pretty printing in development
-  if (config.logging.format === 'pretty' || config.environment === 'development') {
-    logger = pino(pinoConfig, pino.transport({
-      target: 'pino-pretty',
-      options: {
-        colorize: true,
-        translateTime: 'HH:MM:ss Z',
-        ignore: 'pid,hostname',
-      },
-    }));
+  if (
+    config.logging.format === 'pretty' ||
+    config.environment === 'development'
+  ) {
+    logger = pino(
+      pinoConfig,
+      pino.transport({
+        target: 'pino-pretty',
+        options: {
+          colorize: true,
+          translateTime: 'HH:MM:ss Z',
+          ignore: 'pid,hostname',
+        },
+      })
+    );
   } else {
     logger = pino(pinoConfig);
   }
 
-  console.log(`📝 Structured logging initialized at ${config.logging.level} level`);
+  console.log(
+    `📝 Structured logging initialized at ${config.logging.level} level`
+  );
   return logger;
 }
 
@@ -85,14 +93,14 @@ export class ObservabilityLogger {
   private addTraceContext(obj: any = {}) {
     const traceId = getCurrentTraceId();
     const spanId = getCurrentSpanId();
-    
+
     if (traceId) {
       obj.traceId = traceId;
     }
     if (spanId) {
       obj.spanId = spanId;
     }
-    
+
     return obj;
   }
 
@@ -158,47 +166,75 @@ export class ObservabilityLogger {
 
   // Convenience methods for common patterns
   logRequest(req: any, msg = 'Request received'): void {
-    this.info({
-      req: {
-        method: req.method,
-        url: req.url,
-        headers: req.headers,
-        userId: req.user?.id,
+    this.info(
+      {
+        req: {
+          method: req.method,
+          url: req.url,
+          headers: req.headers,
+          userId: req.user?.id,
+        },
       },
-    }, msg);
+      msg
+    );
   }
 
   logResponse(res: any, latencyMs: number, msg = 'Request completed'): void {
-    this.info({
-      res: {
-        statusCode: res.statusCode,
-        headers: res.getHeaders ? res.getHeaders() : {},
+    this.info(
+      {
+        res: {
+          statusCode: res.statusCode,
+          headers: res.getHeaders ? res.getHeaders() : {},
+        },
+        latencyMs,
       },
-      latencyMs,
-    }, msg);
+      msg
+    );
   }
 
-  logError(error: Error, context?: Record<string, any>, msg = 'Error occurred'): void {
-    this.error({
-      err: error,
-      ...context,
-    }, msg);
+  logError(
+    error: Error,
+    context?: Record<string, any>,
+    msg = 'Error occurred'
+  ): void {
+    this.error(
+      {
+        err: error,
+        ...context,
+      },
+      msg
+    );
   }
 
-  logBusinessEvent(event: string, data: Record<string, any>, msg?: string): void {
-    this.info({
-      event,
-      ...data,
-    }, msg || `Business event: ${event}`);
+  logBusinessEvent(
+    event: string,
+    data: Record<string, any>,
+    msg?: string
+  ): void {
+    this.info(
+      {
+        event,
+        ...data,
+      },
+      msg || `Business event: ${event}`
+    );
   }
 
-  logMetric(metric: string, value: number, unit?: string, tags?: Record<string, string>): void {
-    this.info({
-      metric,
-      value,
-      unit,
-      tags,
-    }, `Metric recorded: ${metric}`);
+  logMetric(
+    metric: string,
+    value: number,
+    unit?: string,
+    tags?: Record<string, string>
+  ): void {
+    this.info(
+      {
+        metric,
+        value,
+        unit,
+        tags,
+      },
+      `Metric recorded: ${metric}`
+    );
   }
 
   child(bindings: Record<string, any>): ObservabilityLogger {

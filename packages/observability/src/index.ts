@@ -22,14 +22,16 @@ export function initializeObservability() {
   }
 
   const config = getObservabilityConfig();
-  console.log(`🚀 Initializing observability for ${config.serviceName} v${config.serviceVersion}`);
+  console.log(
+    `🚀 Initializing observability for ${config.serviceName} v${config.serviceVersion}`
+  );
 
   // Initialize tracing first as it affects other components
   initializeTracing();
-  
+
   // Initialize metrics
   initializeMetrics();
-  
+
   // Initialize logging
   initializeLogging();
 
@@ -59,14 +61,11 @@ export async function shutdownObservability(): Promise<void> {
   }
 
   console.log('🔍 Shutting down observability stack...');
-  
+
   try {
     // Shutdown in reverse order
-    await Promise.all([
-      shutdownTracing(),
-      shutdownMetrics(),
-    ]);
-    
+    await Promise.all([shutdownTracing(), shutdownMetrics()]);
+
     isInitialized = false;
     console.log('✅ Observability shutdown complete');
   } catch (error) {

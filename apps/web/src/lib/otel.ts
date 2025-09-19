@@ -1,6 +1,11 @@
 // OpenTelemetry initialization for the web application
 // This file should be imported as early as possible
-import { initializeObservability, getTracer, defaultLogger, defaultMetrics } from '@ai-app-platform/observability';
+import {
+  initializeObservability,
+  getTracer,
+  defaultLogger,
+  defaultMetrics,
+} from '@ai-app-platform/observability';
 
 // Initialize observability stack
 initializeObservability();
@@ -26,7 +31,7 @@ export {
 export function getTraceHeaders() {
   const traceId = require('@ai-app-platform/observability').getCurrentTraceId();
   const spanId = require('@ai-app-platform/observability').getCurrentSpanId();
-  
+
   return {
     'x-trace-id': traceId || 'unknown',
     'x-span-id': spanId || 'unknown',
@@ -35,17 +40,21 @@ export function getTraceHeaders() {
 
 export function logRequest(req: any, res: any) {
   const logger = require('@ai-app-platform/observability').defaultLogger;
-  
+
   logger.logRequest(req, `${req.method} ${req.url}`);
-  
+
   // Add response logging after request completes
   const originalSend = res.send;
-  res.send = function(body: any) {
+  res.send = function (body: any) {
     const startTime = req.startTime || Date.now();
     const latency = Date.now() - startTime;
-    
-    logger.logResponse(res, latency, `${req.method} ${req.url} - ${res.statusCode}`);
-    
+
+    logger.logResponse(
+      res,
+      latency,
+      `${req.method} ${req.url} - ${res.statusCode}`
+    );
+
     // Record metrics
     const metrics = require('@ai-app-platform/observability').defaultMetrics;
     metrics.recordRequest(req.url, req.method, res.statusCode);
@@ -54,7 +63,7 @@ export function logRequest(req: any, res: any) {
       route: req.url,
       status_code: res.statusCode.toString(),
     });
-    
+
     return originalSend.call(this, body);
   };
 }

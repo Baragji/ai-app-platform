@@ -5,18 +5,21 @@ This directory contains security verification tests and compliance validation sc
 ## Test Categories
 
 ### Supply Chain Security Tests
+
 - SBOM generation and validation
 - Dependency vulnerability scanning
 - License compliance verification
 - SLSA provenance verification
 
-### Application Security Tests  
+### Application Security Tests
+
 - ASVS compliance verification
 - Authentication and authorization testing
 - Input validation and output encoding
 - Session management security
 
 ### AI-Specific Security Tests
+
 - AI model input validation
 - Output filtering and sanitization
 - Bias and fairness testing
@@ -37,6 +40,7 @@ npm run test:security:ai-compliance
 ## Continuous Security Validation
 
 Security tests are integrated into the CI/CD pipeline to ensure:
+
 - No security regressions
 - Compliance requirements are maintained
 - Vulnerability detection and remediation

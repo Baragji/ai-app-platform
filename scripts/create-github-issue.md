@@ -3,15 +3,18 @@
 ## Issue #21: Event Sourcing & GraphQL
 
 ### GitHub Issue Details
+
 - **Title**: `Event Sourcing & GraphQL`
 - **Labels**: `phase-4`, `feature`
 - **Assignee**: `Copilot` (GitHub username to be assigned)
 - **Milestone**: `Phase 4 - Distributed State & Events`
 
 ### Issue Body
+
 Copy the entire content from `issues/issue-21-event-sourcing-graphql.md` into the GitHub issue body.
 
 ### Manual Creation Steps
+
 1. Go to https://github.com/Baragji/ai-app-platform/issues/new
 2. Set title: `Event Sourcing & GraphQL`
 3. Copy content from `issues/issue-21-event-sourcing-graphql.md`
@@ -21,6 +24,7 @@ Copy the entire content from `issues/issue-21-event-sourcing-graphql.md` into th
 7. Click "Create issue"
 
 ### CLI Creation (if using GitHub CLI)
+
 ```bash
 gh issue create \
   --title "Event Sourcing & GraphQL" \
@@ -31,6 +35,7 @@ gh issue create \
 ```
 
 ### API Creation (if using GitHub API)
+
 ```bash
 curl -X POST \
   -H "Authorization: token $GITHUB_TOKEN" \
@@ -45,4 +50,5 @@ curl -X POST \
 ```
 
 ### Issue Number
+
 This should be assigned issue number **#21** based on the roadmap sequence.

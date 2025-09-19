@@ -1,4 +1,10 @@
-import { initializeTracing, getTracer, getCurrentTraceId, withSpan, resetTracing } from '../src/tracing';
+import {
+  initializeTracing,
+  getTracer,
+  getCurrentTraceId,
+  withSpan,
+  resetTracing,
+} from '../src/tracing';
 import { resetConfig } from '../src/config';
 
 describe('Tracing', () => {
@@ -32,7 +38,7 @@ describe('Tracing', () => {
   it('should execute function with span', async () => {
     const tracer = getTracer('test-tracer');
     let executed = false;
-    
+
     const result = await withSpan(tracer, 'test-span', async () => {
       executed = true;
       return 'success';
@@ -45,7 +51,7 @@ describe('Tracing', () => {
   it('should handle errors in span', async () => {
     const tracer = getTracer('test-tracer');
     const error = new Error('Test error');
-    
+
     await expect(
       withSpan(tracer, 'test-span', async () => {
         throw error;
@@ -56,7 +62,7 @@ describe('Tracing', () => {
   it('should get current trace ID when span is active', async () => {
     const tracer = getTracer('test-tracer');
     let traceId: string | undefined;
-    
+
     await withSpan(tracer, 'test-span', async () => {
       traceId = getCurrentTraceId();
     });

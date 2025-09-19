@@ -1,4 +1,10 @@
-import { initializeMetrics, getMeter, MetricsCollector, measureLatency, resetMetrics } from '../src/metrics';
+import {
+  initializeMetrics,
+  getMeter,
+  MetricsCollector,
+  measureLatency,
+  resetMetrics,
+} from '../src/metrics';
 import { resetConfig } from '../src/config';
 
 describe('Metrics', () => {
@@ -32,17 +38,17 @@ describe('Metrics', () => {
   it('should create metrics collector', () => {
     const collector = new MetricsCollector('test-collector');
     expect(collector).toBeDefined();
-    
+
     // Test counter creation and increment
     expect(() => {
       collector.incrementCounter('test_counter', 1, { tag: 'value' });
     }).not.toThrow();
-    
+
     // Test histogram recording
     expect(() => {
       collector.recordHistogram('test_histogram', 100, { operation: 'test' });
     }).not.toThrow();
-    
+
     // Test latency recording
     expect(() => {
       collector.recordLatency('test_operation', 250, { service: 'test' });
@@ -51,7 +57,7 @@ describe('Metrics', () => {
 
   it('should measure latency with measureLatency utility', async () => {
     const result = await measureLatency('test_operation', async () => {
-      await new Promise(resolve => setTimeout(resolve, 10)); // 10ms delay
+      await new Promise((resolve) => setTimeout(resolve, 10)); // 10ms delay
       return 'success';
     });
 
@@ -60,7 +66,7 @@ describe('Metrics', () => {
 
   it('should handle errors in measureLatency', async () => {
     const error = new Error('Test error');
-    
+
     await expect(
       measureLatency('test_operation', async () => {
         throw error;
@@ -70,11 +76,13 @@ describe('Metrics', () => {
 
   it('should record business metrics', () => {
     const collector = new MetricsCollector();
-    
+
     expect(() => {
       collector.recordBusinessMetric('user_signups', 5, { region: 'us-east' });
       collector.recordRequest('/api/test', 'GET', 200, { version: 'v1' });
-      collector.recordError('database_query', 'ConnectionError', { table: 'users' });
+      collector.recordError('database_query', 'ConnectionError', {
+        table: 'users',
+      });
     }).not.toThrow();
   });
 });

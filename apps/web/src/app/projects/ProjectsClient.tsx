@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 
@@ -20,12 +20,6 @@ export default function ProjectsClient() {
   const [error, setError] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newProject, setNewProject] = useState({ name: '', description: '' });
-
-  useEffect(() => {
-    if (status === 'authenticated') {
-      fetchProjects();
-    }
-  }, [status]);
 
   // Simple fetch with retries to reduce flakiness after mutations
   const fetchWithRetry = async (
@@ -50,7 +44,7 @@ export default function ProjectsClient() {
     return fetch(url, { credentials: 'include', ...init });
   };
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetchWithRetry('/api/projects');
@@ -65,7 +59,13 @@ export default function ProjectsClient() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      fetchProjects();
+    }
+  }, [status, fetchProjects]);
 
   const createProject = async (e: React.FormEvent) => {
     e.preventDefault();
