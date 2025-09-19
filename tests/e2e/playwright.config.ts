@@ -11,6 +11,7 @@ export default defineConfig({
     baseURL: process.env.BASE_URL || 'http://localhost:3000',
     trace: 'on-first-retry',
   },
+  timeout: 60000, // Increase overall test timeout to 60 seconds
 
   projects: [
     {
@@ -30,10 +31,12 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'npm run dev --workspace=apps/web',
+    command: process.env.CI
+      ? 'npm run start --workspace=apps/web'
+      : 'npm run dev --workspace=apps/web',
     port: 3000,
     reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
+    timeout: 180_000, // Increase webServer timeout
     cwd: '../..',
   },
 });

@@ -60,7 +60,10 @@ jobs:
       - name: Seed DB
         run: npm run seed --workspace=apps/web
 
-      - name: Build gateway package first
+      - name: Build observability package first
+        run: npm run build --workspace=packages/observability
+
+      - name: Build gateway package
         run: npm run build --workspace=packages/gateway
 
       - name: Run ESLint

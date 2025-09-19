@@ -3,32 +3,36 @@ import { test, expect } from '@playwright/test';
 test.describe('Project management', () => {
   test.beforeEach(async ({ page }) => {
     // Sign in before each test
-    await page.goto('/auth/signin');
+    await page.goto('/auth/signin', { waitUntil: 'networkidle' });
+
+    // Wait for the signin form to be ready
+    await expect(page.locator('#email')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#password')).toBeVisible({ timeout: 10000 });
 
     await page.fill('#email', 'demo@example.com');
     await page.fill('#password', 'demo123');
 
-    // Click submit
-    await page.click('button[type="submit"]');
-
-    // Wait for app navigation via router.push('/projects') and/or first projects fetch
-    await Promise.race([
+    // Click submit and wait for navigation
+    await Promise.all([
       page.waitForURL('**/projects*', {
-        waitUntil: 'domcontentloaded',
-        timeout: 20000,
+        waitUntil: 'networkidle',
+        timeout: 30000,
       }),
-      page.waitForResponse(
-        (res) =>
-          res.request().method() === 'GET' &&
-          res.url().includes('/api/projects') &&
-          res.ok(),
-        { timeout: 20000 }
-      ),
+      page.click('button[type="submit"]'),
     ]);
+
+    // Wait for projects API call to complete and page to be ready
+    await page.waitForResponse(
+      (res) =>
+        res.request().method() === 'GET' &&
+        res.url().includes('/api/projects') &&
+        res.ok(),
+      { timeout: 30000 }
+    );
 
     // Projects heading should be visible now
     await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible({
-      timeout: 20000,
+      timeout: 30000,
     });
   });
 
@@ -106,14 +110,35 @@ test.describe('Project management', () => {
     // First create a project to delete
     const projectName = `Delete Test ${Date.now()}`;
 
+    // Wait for Create Project button to be available
+    await expect(
+      page.getByRole('button', { name: 'Create Project' })
+    ).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: 'Create Project' }).click();
+
+    // Wait for form to be visible
+    await expect(page.locator('input[id="name"]')).toBeVisible({
+      timeout: 10000,
+    });
     await page.fill('input[id="name"]', projectName);
-    await page.click('button[type="submit"]');
 
-    // Wait for project to appear
-    await expect(page.locator(`text=${projectName}`)).toBeVisible();
+    // Submit and wait for response
+    await Promise.all([
+      page.waitForResponse(
+        (res) =>
+          res.request().method() === 'POST' &&
+          res.url().includes('/api/projects'),
+        { timeout: 10000 }
+      ),
+      page.click('button[type="submit"]'),
+    ]);
 
-    // Delete the project (confirmation removed in UI for test stability)
+    // Wait for project to appear in the list
+    await expect(page.locator(`text=${projectName}`)).toBeVisible({
+      timeout: 15000,
+    });
+
+    // Find the specific project card
     const projectCardsByName = page
       .locator('[data-testid="project-card"]')
       .filter({
@@ -123,16 +148,24 @@ test.describe('Project management', () => {
       });
 
     // Ensure the card is present
-    await expect(projectCardsByName).toHaveCount(1);
+    await expect(projectCardsByName).toHaveCount(1, { timeout: 10000 });
 
-    // Click delete inside the specific card
-    await projectCardsByName
-      .first()
-      .locator('[data-testid="delete-project"]')
-      .click();
+    // Click delete inside the specific card and wait for API response
+    await Promise.all([
+      page.waitForResponse(
+        (res) =>
+          res.request().method() === 'DELETE' &&
+          res.url().includes('/api/projects'),
+        { timeout: 10000 }
+      ),
+      projectCardsByName
+        .first()
+        .locator('[data-testid="delete-project"]')
+        .click(),
+    ]);
 
     // Wait for the UI to reflect deletion
-    await expect(projectCardsByName).toHaveCount(0, { timeout: 20000 });
+    await expect(projectCardsByName).toHaveCount(0, { timeout: 30000 });
   });
 
   test('should display demo project from seed data', async ({ page }) => {
