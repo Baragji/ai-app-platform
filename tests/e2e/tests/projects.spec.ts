@@ -111,24 +111,32 @@ test.describe('Project management', () => {
     const projectName = `Delete Test ${Date.now()}`;
 
     // Wait for Create Project button to be available
-    await expect(page.getByRole('button', { name: 'Create Project' })).toBeVisible({ timeout: 10000 });
+    await expect(
+      page.getByRole('button', { name: 'Create Project' })
+    ).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: 'Create Project' }).click();
-    
+
     // Wait for form to be visible
-    await expect(page.locator('input[id="name"]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('input[id="name"]')).toBeVisible({
+      timeout: 10000,
+    });
     await page.fill('input[id="name"]', projectName);
-    
+
     // Submit and wait for response
     await Promise.all([
       page.waitForResponse(
-        (res) => res.request().method() === 'POST' && res.url().includes('/api/projects'),
+        (res) =>
+          res.request().method() === 'POST' &&
+          res.url().includes('/api/projects'),
         { timeout: 10000 }
       ),
       page.click('button[type="submit"]'),
     ]);
 
     // Wait for project to appear in the list
-    await expect(page.locator(`text=${projectName}`)).toBeVisible({ timeout: 15000 });
+    await expect(page.locator(`text=${projectName}`)).toBeVisible({
+      timeout: 15000,
+    });
 
     // Find the specific project card
     const projectCardsByName = page
@@ -145,7 +153,9 @@ test.describe('Project management', () => {
     // Click delete inside the specific card and wait for API response
     await Promise.all([
       page.waitForResponse(
-        (res) => res.request().method() === 'DELETE' && res.url().includes('/api/projects'),
+        (res) =>
+          res.request().method() === 'DELETE' &&
+          res.url().includes('/api/projects'),
         { timeout: 10000 }
       ),
       projectCardsByName
