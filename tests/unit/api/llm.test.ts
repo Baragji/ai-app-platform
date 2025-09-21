@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { POST, GET } from '../../../apps/web/src/app/api/llm/route';
 
 // Mock the gateway module
 jest.mock('@ai-app-platform/gateway', () => ({
@@ -11,7 +12,7 @@ const mockCreateGateway = createGateway as jest.MockedFunction<
   typeof createGateway
 >;
 
-describe('LLM API Route', () => {
+describe('LLM API Route Handler', () => {
   let mockGateway: any;
 
   beforeEach(() => {
@@ -24,87 +25,7 @@ describe('LLM API Route', () => {
   });
 
   describe('POST /api/llm', () => {
-    it('should validate request data', async () => {
-      const validRequest = {
-        model: 'gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'user',
-            content: 'Hello',
-          },
-        ],
-      };
-
-      const invalidRequests = [
-        {}, // Missing required fields
-        {
-          model: '',
-          messages: [],
-        }, // Empty fields
-        {
-          model: 'gpt-3.5-turbo',
-          messages: [
-            {
-              role: 'invalid_role',
-              content: 'Hello',
-            },
-          ],
-        }, // Invalid role
-        {
-          model: 'gpt-3.5-turbo',
-          messages: [
-            {
-              role: 'user',
-              content: '',
-            },
-          ],
-        }, // Empty content
-      ];
-
-      // Valid request should pass schema validation
-      expect(() => {
-        const { model, messages } = validRequest;
-        const isValidModel = typeof model === 'string' && model.length > 0;
-        const isValidMessages = Array.isArray(messages) && messages.length > 0;
-        const isValidMessage = messages.every(
-          (msg) =>
-            ['system', 'user', 'assistant'].includes(msg.role) &&
-            typeof msg.content === 'string' &&
-            msg.content.length > 0
-        );
-
-        return isValidModel && isValidMessages && isValidMessage;
-      }).not.toThrow();
-
-      // Invalid requests should fail validation
-      invalidRequests.forEach((request) => {
-        const hasModel =
-          'model' in request &&
-          typeof request.model === 'string' &&
-          request.model.length > 0;
-        const hasValidMessages =
-          'messages' in request &&
-          Array.isArray(request.messages) &&
-          request.messages.length > 0;
-
-        let hasValidMessageStructure = false;
-        if (hasValidMessages) {
-          hasValidMessageStructure = (request as any).messages.every(
-            (msg: any) =>
-              msg &&
-              ['system', 'user', 'assistant'].includes(msg.role) &&
-              typeof msg.content === 'string' &&
-              msg.content.length > 0
-          );
-        }
-
-        expect(hasModel && hasValidMessages && hasValidMessageStructure).toBe(
-          false
-        );
-      });
-    });
-
-    it('should handle successful model response', async () => {
+    it('should handle valid chat completion request', async () => {
       const mockResult = {
         response: {
           id: 'chatcmpl-test',
@@ -129,42 +50,108 @@ describe('LLM API Route', () => {
         },
         latency: 1500,
         cost: 0.0001,
+        traceId: 'trace-123',
+        requestId: 'req-456',
       };
 
       mockGateway.chatCompletion.mockResolvedValue(mockResult);
 
-      // The API should return success with data and metrics
-      const expectedResponse = {
-        success: true,
-        data: {
-          response: mockResult.response,
-          metrics: {
-            latency: mockResult.latency,
-            cost: mockResult.cost,
+      const requestData = {
+        model: 'gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'user',
+            content: 'Hello',
           },
-        },
+        ],
       };
 
-      expect(expectedResponse.success).toBe(true);
-      expect(expectedResponse.data.metrics.latency).toBe(1500);
-      expect(expectedResponse.data.metrics.cost).toBe(0.0001);
+      // Create mock NextRequest
+      const request = new NextRequest('http://localhost:3000/api/llm', {
+        method: 'POST',
+        body: JSON.stringify(requestData),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const response = await POST(request);
+      const responseData = await response.json();
+
+      expect(mockGateway.chatCompletion).toHaveBeenCalledWith(requestData);
+      expect(response.status).toBe(200);
+      expect(responseData.success).toBe(true);
+      expect(responseData.data.response).toEqual(mockResult.response);
+      expect(responseData.data.metrics.latency).toBe(1500);
+      expect(responseData.data.metrics.cost).toBe(0.0001);
+      expect(responseData.data.tracing.traceId).toBe('trace-123');
+    });
+
+    it('should handle validation errors', async () => {
+      // Create an invalid request that should fail Zod validation
+      const invalidRequestData = {
+        model: 'gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'invalid_role', // This should fail validation
+            content: 'Hello',
+          },
+        ],
+      };
+
+      const request = new NextRequest('http://localhost:3000/api/llm', {
+        method: 'POST',
+        body: JSON.stringify(invalidRequestData),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const response = await POST(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(responseData.success).toBe(false);
+      expect(responseData.error).toBe('Invalid request format');
+      expect(responseData.details).toBeDefined();
     });
 
     it('should handle gateway errors', async () => {
       const errorMessage = 'Gateway timeout';
       mockGateway.chatCompletion.mockRejectedValue(new Error(errorMessage));
 
-      // The API should return error response
-      const expectedResponse = {
-        success: false,
-        error: errorMessage,
+      const requestData = {
+        model: 'gpt-3.5-turbo',
+        messages: [{ role: 'user', content: 'Hello' }],
       };
 
-      expect(expectedResponse.success).toBe(false);
-      expect(expectedResponse.error).toBe(errorMessage);
+      const request = new NextRequest('http://localhost:3000/api/llm', {
+        method: 'POST',
+        body: JSON.stringify(requestData),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const response = await POST(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(500);
+      expect(responseData.success).toBe(false);
+      expect(responseData.error).toBe(errorMessage);
     });
 
-    it('should validate optional parameters', () => {
+    it('should validate optional parameters', async () => {
+      const mockResult = {
+        response: { id: 'test' },
+        latency: 100,
+        cost: 0.001,
+        traceId: 'trace-123',
+        requestId: 'req-456',
+      };
+
+      mockGateway.chatCompletion.mockResolvedValue(mockResult);
+
       const requestWithOptionalParams = {
         model: 'gpt-3.5-turbo',
         messages: [{ role: 'user', content: 'Hello' }],
@@ -172,20 +159,43 @@ describe('LLM API Route', () => {
         max_tokens: 150,
       };
 
-      // Temperature should be between 0 and 2
-      const validTemperatures = [0, 0.5, 1.0, 1.5, 2.0];
-      const invalidTemperatures = [-0.1, 2.1];
-
-      validTemperatures.forEach((temp) => {
-        expect(temp >= 0 && temp <= 2).toBe(true);
+      const request = new NextRequest('http://localhost:3000/api/llm', {
+        method: 'POST',
+        body: JSON.stringify(requestWithOptionalParams),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
-      invalidTemperatures.forEach((temp) => {
-        expect(temp >= 0 && temp <= 2).toBe(false);
+      const response = await POST(request);
+      const responseData = await response.json();
+
+      expect(mockGateway.chatCompletion).toHaveBeenCalledWith(requestWithOptionalParams);
+      expect(response.status).toBe(200);
+      expect(responseData.success).toBe(true);
+    });
+
+    it('should reject invalid temperature values', async () => {
+      const invalidRequestData = {
+        model: 'gpt-3.5-turbo',
+        messages: [{ role: 'user', content: 'Hello' }],
+        temperature: 3.0, // Invalid: > 2
+      };
+
+      const request = new NextRequest('http://localhost:3000/api/llm', {
+        method: 'POST',
+        body: JSON.stringify(invalidRequestData),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
-      // Max tokens should be positive
-      expect(requestWithOptionalParams.max_tokens > 0).toBe(true);
+      const response = await POST(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(responseData.success).toBe(false);
+      expect(responseData.error).toBe('Invalid request format');
     });
   });
 
@@ -198,82 +208,28 @@ describe('LLM API Route', () => {
 
       mockGateway.healthCheck.mockResolvedValue(mockHealthResult);
 
-      const expectedResponse = {
-        success: true,
-        service: 'LiteLLM Gateway',
-        status: 'healthy',
-        latency: 250,
-      };
+      const response = await GET();
+      const responseData = await response.json();
 
-      expect(expectedResponse.success).toBe(true);
-      expect(expectedResponse.status).toBe('healthy');
-      expect(expectedResponse.latency).toBe(250);
+      expect(mockGateway.healthCheck).toHaveBeenCalled();
+      expect(response.status).toBe(200);
+      expect(responseData.success).toBe(true);
+      expect(responseData.service).toBe('LiteLLM Gateway');
+      expect(responseData.status).toBe('healthy');
+      expect(responseData.latency).toBe(250);
     });
 
     it('should handle health check errors', async () => {
       mockGateway.healthCheck.mockRejectedValue(new Error('Connection failed'));
 
-      const expectedResponse = {
-        success: false,
-        service: 'LiteLLM Gateway',
-        status: 'unhealthy',
-        error: 'Connection failed',
-      };
+      const response = await GET();
+      const responseData = await response.json();
 
-      expect(expectedResponse.success).toBe(false);
-      expect(expectedResponse.status).toBe('unhealthy');
-    });
-  });
-
-  describe('Response formatting', () => {
-    it('should format successful responses correctly', () => {
-      const mockModelResponse = {
-        id: 'test-id',
-        object: 'chat.completion',
-        created: 1699999999,
-        model: 'gpt-3.5-turbo',
-        choices: [
-          {
-            index: 0,
-            message: { role: 'assistant', content: 'Test response' },
-            finish_reason: 'stop',
-          },
-        ],
-        usage: {
-          prompt_tokens: 5,
-          completion_tokens: 2,
-          total_tokens: 7,
-        },
-      };
-
-      const formattedResponse = {
-        success: true,
-        data: {
-          response: mockModelResponse,
-          metrics: {
-            latency: 1000,
-            cost: 0.00005,
-          },
-        },
-      };
-
-      expect(formattedResponse).toHaveProperty('success', true);
-      expect(formattedResponse).toHaveProperty('data');
-      expect(formattedResponse.data).toHaveProperty('response');
-      expect(formattedResponse.data).toHaveProperty('metrics');
-      expect(formattedResponse.data.metrics).toHaveProperty('latency');
-      expect(formattedResponse.data.metrics).toHaveProperty('cost');
-    });
-
-    it('should format error responses correctly', () => {
-      const errorResponse = {
-        success: false,
-        error: 'Test error message',
-      };
-
-      expect(errorResponse).toHaveProperty('success', false);
-      expect(errorResponse).toHaveProperty('error');
-      expect(typeof errorResponse.error).toBe('string');
+      expect(response.status).toBe(500);
+      expect(responseData.success).toBe(false);
+      expect(responseData.service).toBe('LiteLLM Gateway');
+      expect(responseData.status).toBe('unhealthy');
+      expect(responseData.error).toBe('Connection failed');
     });
   });
 });
