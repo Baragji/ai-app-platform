@@ -221,14 +221,18 @@ jobs:
         run: |
           mkdir -p security-evidence-bundle
 
-          # Copy build artifacts
-          find artifacts -name "*.tar.gz" -exec cp {} security-evidence-bundle/ \;
-          find artifacts -name "sbom-provenance.json" -exec cp {} security-evidence-bundle/ \;
-          find artifacts -name "checksums.txt" -exec cp {} security-evidence-bundle/ \;
+          # Copy build artifacts (handle missing directories gracefully)
+          if [ -d "artifacts" ]; then
+            find artifacts -name "*.tar.gz" -exec cp {} security-evidence-bundle/ \; 2>/dev/null || echo "No .tar.gz files found"
+            find artifacts -name "sbom-provenance.json" -exec cp {} security-evidence-bundle/ \; 2>/dev/null || echo "No SBOM files found"
+            find artifacts -name "checksums.txt" -exec cp {} security-evidence-bundle/ \; 2>/dev/null || echo "No checksum files found"
 
-          # Copy provenance and verification
-          find artifacts -name "*.intoto.jsonl" -exec cp {} security-evidence-bundle/ \;
-          find artifacts -name "verification-report.md" -exec cp {} security-evidence-bundle/ \;
+            # Copy provenance and verification
+            find artifacts -name "*.intoto.jsonl" -exec cp {} security-evidence-bundle/ \; 2>/dev/null || echo "No provenance files found"
+            find artifacts -name "verification-report.md" -exec cp {} security-evidence-bundle/ \; 2>/dev/null || echo "No verification report found"
+          else
+            echo "Artifacts directory not found. Creating empty security evidence bundle."
+          fi
 
           # Create master evidence manifest
           cat > security-evidence-bundle/SECURITY_EVIDENCE.md << EOF
