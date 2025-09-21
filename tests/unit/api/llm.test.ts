@@ -170,7 +170,9 @@ describe('LLM API Route Handler', () => {
       const response = await POST(request);
       const responseData = await response.json();
 
-      expect(mockGateway.chatCompletion).toHaveBeenCalledWith(requestWithOptionalParams);
+      expect(mockGateway.chatCompletion).toHaveBeenCalledWith(
+        requestWithOptionalParams
+      );
       expect(response.status).toBe(200);
       expect(responseData.success).toBe(true);
     });

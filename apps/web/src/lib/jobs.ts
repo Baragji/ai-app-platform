@@ -1,8 +1,8 @@
 // Real job queue implementation using packages/jobs
-import { 
-  addSampleJob as addSampleJobImpl, 
+import {
+  addSampleJob as addSampleJobImpl,
   getQueueHealth as getQueueHealthImpl,
-  type SampleJobData as SampleJobDataImpl 
+  type SampleJobData as SampleJobDataImpl,
 } from '@ai-app-platform/jobs';
 
 export interface SampleJobData extends SampleJobDataImpl {}
