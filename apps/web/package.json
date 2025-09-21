@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "prebuild": "npm run -w @ai-app-platform/config build && npm run -w @ai-app-platform/db build && npm run -w @ai-app-platform/jobs build && npm run -w @ai-app-platform/observability build",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
@@ -26,7 +27,9 @@
     "bullmq": "^4.15.0",
     "ioredis": "^5.3.2",
     "@ai-app-platform/gateway": "*",
-    "@ai-app-platform/observability": "*"
+    "@ai-app-platform/observability": "*",
+    "@ai-app-platform/db": "*",
+    "@ai-app-platform/jobs": "*"
   },
   "devDependencies": {
     "typescript": "^5.3.0",
