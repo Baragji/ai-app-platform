@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "prebuild": "npm run -w @ai-app-platform/config build && npm run -w @ai-app-platform/db build && npm run -w @ai-app-platform/jobs build && npm run -w @ai-app-platform/observability build",
+    "prebuild": "npm run -w @ai-app-platform/config build && npm run -w @ai-app-platform/db build && npm run -w @ai-app-platform/jobs build && npm run -w @ai-app-platform/gateway build && npm run -w @ai-app-platform/observability build && npm run generate",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
